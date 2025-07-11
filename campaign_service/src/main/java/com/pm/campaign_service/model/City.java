@@ -1,9 +1,6 @@
 package com.pm.campaign_service.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -16,13 +13,14 @@ public class City {
     private UUID id;
 
     @NotBlank
+    @Column(unique = true)
     private String name;
 
     @NotNull
-    private Double latitude;   // y
+    private double latitude;   // y
 
     @NotNull
-    private Double longitude;  // x
+    private double longitude;  // x
 
     public UUID getId() {
         return id;
