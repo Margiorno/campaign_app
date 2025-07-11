@@ -63,6 +63,11 @@ public class CityService {
                 .orElseThrow(() -> new CityOperationException("City with this id does not exist: " + id)));
     }
 
+    public City findById(String id) {
+        return cityRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new CityOperationException("City with this id does not exist: " + id));
+    }
+
     public boolean existsById(UUID id) {
         return cityRepository.existsById(id);
     }

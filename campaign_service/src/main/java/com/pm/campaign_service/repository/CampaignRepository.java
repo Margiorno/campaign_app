@@ -7,4 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CampaignRepository extends CrudRepository<Campaign, UUID> {
+    boolean existsByName(String name);
 }
