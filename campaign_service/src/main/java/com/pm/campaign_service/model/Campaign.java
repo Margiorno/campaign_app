@@ -38,8 +38,9 @@ public class Campaign {
     @NotNull
     private boolean active;
 
-    @NotBlank
-    private String city;
+    @NotNull
+    @ManyToOne
+    private City city;
 
     @NotNull
     private int radius;
@@ -119,11 +120,11 @@ public class Campaign {
         this.active = active;
     }
 
-    public @NotBlank String getCity() {
+    public @NotNull City getCity() {
         return city;
     }
 
-    public void setCity(@NotBlank String city) {
+    public void setCity(@NotNull City city) {
         this.city = city;
     }
 

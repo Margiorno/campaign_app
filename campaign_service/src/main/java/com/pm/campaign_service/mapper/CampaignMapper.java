@@ -14,7 +14,7 @@ public class CampaignMapper {
         campaignResponseDTO.setBid_amount(campaign.getBid_amount());
         campaignResponseDTO.setCampaign_amount(campaign.getCampaign_amount());
         campaignResponseDTO.setActive(campaign.isActive());
-        campaignResponseDTO.setCity(campaign.getCity());
+        campaignResponseDTO.setCity(campaign.getCity().getId().toString());
         campaignResponseDTO.setRadius(campaign.getRadius());
 
         return campaignResponseDTO;

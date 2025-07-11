@@ -1,5 +1,6 @@
 package com.pm.campaign_service.service;
 
+import com.pm.campaign_service.dto.CampaignRequestDTO;
 import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.mapper.CampaignMapper;
 import com.pm.campaign_service.model.Campaign;
@@ -24,5 +25,12 @@ public class CampaignService {
         Iterable<Campaign> campaigns = campaignRepository.findAll();
 
         return StreamSupport.stream(campaigns.spliterator(), false).map(CampaignMapper::toDTO).toList();
+    }
+
+    public CampaignResponseDTO save(CampaignRequestDTO campaignRequestDTO) {
+
+        // TODO
+
+        return new CampaignResponseDTO();
     }
 }
