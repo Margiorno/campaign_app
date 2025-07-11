@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/campaign")
@@ -32,5 +33,12 @@ public class CampaignController {
         CampaignResponseDTO campaign = campaignService.save(campaignRequestDTO);
 
         return ResponseEntity.ok(campaign);
+    }
+
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<CampaignResponseDTO> update(@PathVariable UUID id, @RequestBody CampaignRequestDTO campaignRequestDTO) {
+        CampaignResponseDTO campaignResponseDTO = campaignService.update(campaignRequestDTO, id);
+
+        return ResponseEntity.ok(campaignResponseDTO);
     }
 }

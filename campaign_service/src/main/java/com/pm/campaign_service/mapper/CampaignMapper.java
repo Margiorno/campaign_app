@@ -5,10 +5,8 @@ import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.model.Campaign;
 import com.pm.campaign_service.model.City;
 import com.pm.campaign_service.model.Product;
-import com.pm.campaign_service.service.CampaignService;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CampaignMapper {
@@ -29,27 +27,6 @@ public class CampaignMapper {
         return campaignResponseDTO;
     }
 
-
-
-    //    @NotNull
-    //    private LocalDateTime created_at;
-    //
-    //    @NotNull
-    //    private LocalDateTime updated_at;
-
-
-    @NotEmpty
-    private double bid_amount;
-
-    private double campaign_amount;
-
-    @NotBlank
-    private String city;
-
-    private int radius;
-
-
-
     public static Campaign toModel(CampaignRequestDTO campaignRequestDTO, Product product, City city) {
         Campaign campaign = new Campaign();
         campaign.setName(campaignRequestDTO.getName());
@@ -57,7 +34,10 @@ public class CampaignMapper {
             campaign.setDescription(campaignRequestDTO.getDescription());
         }
         campaign.setProduct(product);
-        campaign.setKeywords(campaignRequestDTO.getKeywords());
+        campaign.setKeywords(
+                campaignRequestDTO.getKeywords().isEmpty() || campaignRequestDTO.getKeywords() == null?
+                        new ArrayList<>(List.of(campaignRequestDTO.getName())) : campaignRequestDTO.getKeywords()
+        );
         campaign.setBid_amount(campaignRequestDTO.getBid_amount());
         campaign.setCampaign_amount(campaignRequestDTO.getCampaign_amount());
         campaign.setActive(false);

@@ -50,7 +50,6 @@ public class CityService {
         return CityMapper.toDTO(savedCity);
     }
 
-
     public void delete(UUID id) {
         if (!cityRepository.existsById(id))
             throw new CityOperationException("City with this id does not exist: " + id);
