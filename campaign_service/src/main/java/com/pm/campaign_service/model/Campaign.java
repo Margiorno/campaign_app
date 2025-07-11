@@ -32,7 +32,7 @@ public class Campaign {
     private double bid_amount;
 
     @NotNull
-    @DecimalMin(value = "0.01")
+    @DecimalMin(value = "0.00")
     private double campaign_amount;
 
     @NotNull
@@ -106,7 +106,7 @@ public class Campaign {
         return campaign_amount;
     }
 
-    public void setCampaign_amount(@NotNull @DecimalMin(value = "0.01") double campaign_amount) {
+    public void setCampaign_amount(@NotNull @DecimalMin(value = "0.00") double campaign_amount) {
         this.campaign_amount = campaign_amount;
     }
 
