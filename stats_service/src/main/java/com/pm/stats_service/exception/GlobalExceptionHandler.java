@@ -20,30 +20,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(map);
     }
 
-    @ExceptionHandler(CityOperationException.class)
-    public ResponseEntity<Map<String,String>> handleCityOperationException(CityOperationException ex) {
+    @ExceptionHandler(StatsOperationException.class)
+    public ResponseEntity<Map<String,String>> handleStatsOperationException(StatsOperationException ex) {
         Map<String,String> map = new HashMap<>();
 
         map.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(map);
     }
-
-    @ExceptionHandler(ProductOperationException.class)
-    public ResponseEntity<Map<String,String>> handleProductOperationException(ProductOperationException ex) {
-        Map<String,String> map = new HashMap<>();
-
-        map.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(map);
-    }
-
-    @ExceptionHandler(InvalidUuidException.class)
-    public ResponseEntity<Map<String,String>> handleInvalidUuidException(InvalidUuidException ex) {
-        Map<String,String> map = new HashMap<>();
-
-        map.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(map);
-    }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {

@@ -11,9 +11,6 @@ public class Stats {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private UUID campaignId;
-
     private long clicks;
     private double spentAmount;
 
@@ -23,14 +20,6 @@ public class Stats {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public UUID getCampaignId() {
-        return campaignId;
-    }
-
-    public void setCampaignId(UUID campaignId) {
-        this.campaignId = campaignId;
     }
 
     public long getClicks() {
