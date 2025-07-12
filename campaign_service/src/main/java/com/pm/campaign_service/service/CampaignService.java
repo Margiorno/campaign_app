@@ -9,6 +9,7 @@ import com.pm.campaign_service.model.Campaign;
 import com.pm.campaign_service.model.City;
 import com.pm.campaign_service.model.Product;
 import com.pm.campaign_service.repository.CampaignRepository;
+import com.pm.campaign_service.util.UuidUtil;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,10 +39,11 @@ public class CampaignService {
     }
 
     public CampaignResponseDTO save(CampaignRequestDTO campaignRequestDTO) {
-        if (!cityService.existsById(UUID.fromString(campaignRequestDTO.getCity())))
+
+        if (!cityService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getCity())))
             throw new CampaignOperationException("City with this id does not exist: " + campaignRequestDTO.getCity());
 
-        if(productService.existsById(UUID.fromString(campaignRequestDTO.getProduct())))
+        if(!productService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getProduct())))
             throw new CampaignOperationException("Product with this id does not exist: " + campaignRequestDTO.getProduct());
 
         if(campaignRepository.existsByName(campaignRequestDTO.getName()))

@@ -14,7 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/city")
 public class CityController {
-    private CityService cityService;
+    private final CityService cityService;
 
     @Autowired
     public CityController(CityService cityService) {
