@@ -1,9 +1,11 @@
 package com.pm.campaign_service.grpc;
 
+import com.pm.campaign_service.exception.CampaignOperationException;
 import com.pm.campaign_service.mapper.CampaignMapper;
 import com.pm.proto.CampaignProto;
 import com.pm.proto.CampaignServiceGrpc;
 import com.pm.campaign_service.service.CampaignService;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +24,32 @@ public class CampaignGrpcService extends CampaignServiceGrpc.CampaignServiceImpl
 
     @Override
     public void getCampaignById(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
-        var id = UUID.fromString(request.getId());
-        var responseDTO = campaignService.findById(id);
-        var response = CampaignMapper.toProto(responseDTO);
+        try {
+            var id = UUID.fromString(request.getId());
+            var responseDTO = campaignService.findById(id);
+            var response = CampaignMapper.toProto(responseDTO);
 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (CampaignOperationException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("Invalid UUID format: " + e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error: " + e.getMessage())
+                            .asRuntimeException()
+            );
+        }
     }
 
     @Override
@@ -53,11 +75,31 @@ public class CampaignGrpcService extends CampaignServiceGrpc.CampaignServiceImpl
 
     @Override
     public void deleteCampaign(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
-        var id = UUID.fromString(request.getId());
-        campaignService.delete(id);
+        try {
+            var id = UUID.fromString(request.getId());
+            campaignService.delete(id);
 
-        var response = CampaignProto.CampaignResponse.newBuilder().setId(id.toString()).build();
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            var response = CampaignProto.CampaignResponse.newBuilder().setId(id.toString()).build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (CampaignOperationException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("Invalid UUID format: " + e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error: " + e.getMessage())
+                            .asRuntimeException()
+            );
+        }
     }
 }

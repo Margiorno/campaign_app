@@ -1,5 +1,7 @@
 package com.pm.stats_service.service;
 
+import com.pm.proto.CampaignProto;
+import com.pm.stats_service.client.CampaignGrpcClient;
 import com.pm.stats_service.dto.StatsResponseDTO;
 import com.pm.stats_service.exception.StatsOperationException;
 import com.pm.stats_service.mapper.StatsMapper;
@@ -15,10 +17,12 @@ import java.util.stream.StreamSupport;
 @Service
 public class StatsService {
     private final StatsRepository statsRepository;
+    private final CampaignGrpcClient campaignGrpcClient;
 
     @Autowired
-    public StatsService(StatsRepository statsRepository) {
+    public StatsService(StatsRepository statsRepository, CampaignGrpcClient campaignGrpcClient) {
         this.statsRepository = statsRepository;
+        this.campaignGrpcClient = campaignGrpcClient;
     }
 
     public List<StatsResponseDTO> findAll() {
@@ -38,8 +42,18 @@ public class StatsService {
         if (statsRepository.existsById(id))
             throw new StatsOperationException("Campaign with that id already exists: " + id);
 
-        // TODO communication with campaign service
-        // TODO check if active must be done
+        CampaignProto.CampaignResponse campaign;
+        try {
+            campaign = campaignGrpcClient.getCampaignById(id.toString());
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
+                throw new StatsOperationException("Campaign with that id does not exist: " + id);
+            }
+            throw new StatsOperationException(e.getMessage());
+        }
+
+        if (!campaign.getActive())
+            throw new StatsOperationException("Campaign with that id is inactive");
 
         Stats stats = new Stats();
         stats.setId(UUID.randomUUID());
@@ -48,22 +62,53 @@ public class StatsService {
     }
 
     public void deleteById(UUID id) {
-        if (!statsRepository.existsById(id))
-            throw new StatsOperationException("Campaign with that id already exists: " + id);
+        if (!statsRepository.existsById(id)) {
+            throw new StatsOperationException("Stats with that id does not exist: " + id);
+        }
 
-        // TODO communication with campaign service
-        // delete or make inactive?
+        try {
+            campaignGrpcClient.deleteCampaign(id.toString());
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
+                throw new StatsOperationException("Campaign with that id does not exist in campaign service: " + id);
+            }
+            throw new StatsOperationException("Error while deleting campaign: " + e.getMessage());
+        }
 
         statsRepository.deleteById(id);
     }
+
 
     public StatsResponseDTO registerClick(UUID id) {
         Stats stats = statsRepository.findById(id).orElseThrow(
                 ()-> new StatsOperationException("Campaign with that id does not exists: " + id)
         );
 
-        // TODO communication with campaign service
-        // does we still have founds?
+        CampaignProto.CampaignResponse campaign;
+        try {
+            campaign = campaignGrpcClient.getCampaignById(id.toString());
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
+                throw new StatsOperationException("Campaign with that id does not exist: " + id);
+            }
+            throw new StatsOperationException(e.getMessage());
+        }
+
+        if (!campaign.getActive())
+            throw new StatsOperationException("Campaign with that id is inactive");
+
+        double campaignAmount = campaign.getCampaignAmount();
+        double spentAmount = stats.getSpentAmount();
+        double bidAmount = campaign.getBidAmount();
+
+        if (campaignAmount - spentAmount < bidAmount){
+            // TODO grpc endpoint to stop campaign
+
+            throw new StatsOperationException("Not enough founds");
+        }
+
+        stats.setSpentAmount(stats.getSpentAmount() + campaignAmount);
+        stats.setClicks(stats.getClicks() + 1);
 
         Stats saved = statsRepository.save(stats);
         return StatsMapper.toDTO(saved);
