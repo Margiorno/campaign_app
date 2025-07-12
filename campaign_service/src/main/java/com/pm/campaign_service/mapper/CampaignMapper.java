@@ -18,11 +18,11 @@ public class CampaignMapper {
         campaignResponseDTO.setDescription(campaign.getDescription());
         campaignResponseDTO.setProduct(campaign.getProduct().getId().toString());
         campaignResponseDTO.setKeywords(campaign.getKeywords());
-        campaignResponseDTO.setBid_amount(campaign.getBid_amount());
-        campaignResponseDTO.setCampaign_amount(campaign.getCampaign_amount());
-        campaignResponseDTO.setActive(campaign.isActive());
+        campaignResponseDTO.setBid_amount(Double.toString(campaign.getBid_amount()));
+        campaignResponseDTO.setCampaign_amount(Double.toString(campaign.getCampaign_amount()));
+        campaignResponseDTO.setActive(String.valueOf(campaign.isActive()));
         campaignResponseDTO.setCity(campaign.getCity().getId().toString());
-        campaignResponseDTO.setRadius(campaign.getRadius());
+        campaignResponseDTO.setRadius(Double.toString(campaign.getRadius()));
 
         return campaignResponseDTO;
     }
@@ -38,11 +38,11 @@ public class CampaignMapper {
                 campaignRequestDTO.getKeywords().isEmpty() || campaignRequestDTO.getKeywords() == null?
                         new ArrayList<>(List.of(campaignRequestDTO.getName())) : campaignRequestDTO.getKeywords()
         );
-        campaign.setBid_amount(campaignRequestDTO.getBid_amount());
-        campaign.setCampaign_amount(campaignRequestDTO.getCampaign_amount());
+        campaign.setBid_amount(Double.parseDouble(campaignRequestDTO.getBid_amount()));
+        campaign.setCampaign_amount(Double.parseDouble(campaignRequestDTO.getCampaign_amount()));
         campaign.setActive(false);
         campaign.setCity(city);
-        campaign.setRadius(campaignRequestDTO.getRadius());
+        campaign.setRadius(Double.parseDouble(campaignRequestDTO.getRadius()));
 
         return campaign;
     }

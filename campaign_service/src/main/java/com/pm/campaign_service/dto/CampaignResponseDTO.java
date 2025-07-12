@@ -1,15 +1,6 @@
 package com.pm.campaign_service.dto;
 
-import com.pm.campaign_service.model.Product;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class CampaignResponseDTO {
     private String id;
@@ -17,11 +8,11 @@ public class CampaignResponseDTO {
     private String description;
     private String product;
     private List<String> keywords;
-    private double bid_amount;
-    private double campaign_amount;
-    private boolean active;
+    private String bid_amount;
+    private String campaign_amount;
+    private String active;
     private String city;
-    private int radius;
+    private String radius;
 
     public String getId() {
         return id;
@@ -63,27 +54,27 @@ public class CampaignResponseDTO {
         this.keywords = keywords;
     }
 
-    public double getBid_amount() {
+    public String getBid_amount() {
         return bid_amount;
     }
 
-    public void setBid_amount(double bid_amount) {
+    public void setBid_amount(String bid_amount) {
         this.bid_amount = bid_amount;
     }
 
-    public double getCampaign_amount() {
+    public String getCampaign_amount() {
         return campaign_amount;
     }
 
-    public void setCampaign_amount(double campaign_amount) {
+    public void setCampaign_amount(String campaign_amount) {
         this.campaign_amount = campaign_amount;
     }
 
-    public boolean isActive() {
+    public String getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(String active) {
         this.active = active;
     }
 
@@ -95,11 +86,11 @@ public class CampaignResponseDTO {
         this.city = city;
     }
 
-    public int getRadius() {
+    public String getRadius() {
         return radius;
     }
 
-    public void setRadius(int radius) {
+    public void setRadius(String radius) {
         this.radius = radius;
     }
 }
