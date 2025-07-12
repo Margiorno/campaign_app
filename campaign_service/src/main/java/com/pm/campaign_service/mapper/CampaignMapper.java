@@ -35,12 +35,11 @@ public class CampaignMapper {
         }
         campaign.setProduct(product);
         campaign.setKeywords(
-                campaignRequestDTO.getKeywords().isEmpty() || campaignRequestDTO.getKeywords() == null?
+                campaignRequestDTO.getKeywords() == null ||campaignRequestDTO.getKeywords().isEmpty() ?
                         new ArrayList<>(List.of(campaignRequestDTO.getName())) : campaignRequestDTO.getKeywords()
         );
         campaign.setBid_amount(Double.parseDouble(campaignRequestDTO.getBid_amount()));
         campaign.setCampaign_amount(Double.parseDouble(campaignRequestDTO.getCampaign_amount()));
-        campaign.setActive(false);
         campaign.setCity(city);
         campaign.setRadius(Double.parseDouble(campaignRequestDTO.getRadius()));
 

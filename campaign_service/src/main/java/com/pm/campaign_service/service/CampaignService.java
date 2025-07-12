@@ -53,6 +53,7 @@ public class CampaignService {
         Product product = productService.findById(campaignRequestDTO.getProduct());
 
         Campaign campaign = CampaignMapper.toModel(campaignRequestDTO,product,city);
+        campaign.setActive(false);
         campaign.setCreated_at(LocalDateTime.now());
         campaign.setUpdated_at(LocalDateTime.now());
 

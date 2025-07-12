@@ -40,7 +40,8 @@ public class CampaignController {
     }
 
     @PatchMapping("/update/{id}")
-    public ResponseEntity<CampaignResponseDTO> update(@PathVariable UUID id, @RequestBody CampaignRequestDTO campaignRequestDTO) {
+    public ResponseEntity<CampaignResponseDTO> update(
+            @PathVariable UUID id, @Validated({Default.class}) @RequestBody CampaignRequestDTO campaignRequestDTO) {
         CampaignResponseDTO campaignResponseDTO = campaignService.update(campaignRequestDTO, id);
 
         return ResponseEntity.ok(campaignResponseDTO);
