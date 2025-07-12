@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package com.pm.proto;
+
+option java_package = "com.pm.proto";
+option java_outer_classname = "CampaignProto";
+
+message CampaignRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string product = 4;
+  repeated string keywords = 5;
+  double bid_amount = 6;
+  double campaign_amount = 7;
+  bool active = 8;
+  string city = 9;
+  double radius = 10;
+}
+
+
+message CampaignResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string product = 4;
+  repeated string keywords = 5;
+  double bid_amount = 6;
+  double campaign_amount = 7;
+  bool active = 8;
+  string city = 9;
+  double radius = 10;
+}
+
+service CampaignService {
+  rpc GetCampaignById(CampaignRequest) returns (CampaignResponse);
+  rpc CreateCampaign(CampaignRequest) returns (CampaignResponse);
+  rpc UpdateCampaign(CampaignRequest) returns (CampaignResponse);
+  rpc DeleteCampaign(CampaignRequest) returns (CampaignResponse);
+}

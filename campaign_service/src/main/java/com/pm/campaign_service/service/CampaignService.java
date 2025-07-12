@@ -38,6 +38,13 @@ public class CampaignService {
         return StreamSupport.stream(campaigns.spliterator(), false).map(CampaignMapper::toDTO).toList();
     }
 
+    public CampaignResponseDTO findById(UUID id) {
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+
+        return CampaignMapper.toDTO(campaign);
+    }
+
     public CampaignResponseDTO save(CampaignRequestDTO campaignRequestDTO) {
 
         if (!cityService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getCity())))
@@ -53,7 +60,7 @@ public class CampaignService {
         Product product = productService.findById(campaignRequestDTO.getProduct());
 
         Campaign campaign = CampaignMapper.toModel(campaignRequestDTO,product,city);
-        campaign.setActive(false);
+        campaign.setActive(true);
         campaign.setCreated_at(LocalDateTime.now());
         campaign.setUpdated_at(LocalDateTime.now());
 
@@ -62,10 +69,6 @@ public class CampaignService {
         return CampaignMapper.toDTO(savedCampaign);
     }
 
-    @NotBlank(groups = CreateCampaignValidationGroup.class, message = "City is required")
-    private String city;
-
-    private int radius;
 
     public CampaignResponseDTO update(CampaignRequestDTO campaignRequestDTO, UUID id) {
 
@@ -103,6 +106,8 @@ public class CampaignService {
         campaign.setUpdated_at(LocalDateTime.now());
 
         Campaign savedCampaign = campaignRepository.save(campaign);
+
+        // TODO communication with stats service (creation of new stats)
         return CampaignMapper.toDTO(savedCampaign);
     }
 
@@ -110,6 +115,7 @@ public class CampaignService {
         if (!campaignRepository.existsById(id))
             throw new CampaignOperationException("Campaign with this id does not exist: " + id);
 
+        // TODO communication with stats service (deletion of stats)
         campaignRepository.deleteById(id);
     }
 
@@ -121,6 +127,7 @@ public class CampaignService {
 
         campaign.setActive(true);
         campaign.setUpdated_at(LocalDateTime.now());
+        // TODO communication with stats service (that campaign is active)
 
         return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }
@@ -129,6 +136,7 @@ public class CampaignService {
         Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
         campaign.setActive(false);
         campaign.setUpdated_at(LocalDateTime.now());
+        // TODO communication with stats service (that campaign is inactive)
 
         return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }

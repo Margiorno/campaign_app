@@ -33,6 +33,14 @@ public class CampaignController {
         return ResponseEntity.ok(campaigns);
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Get campaign with given id")
+    public ResponseEntity<CampaignResponseDTO> findById(@PathVariable UUID id) {
+        CampaignResponseDTO campaign = campaignService.findById(id);
+
+        return ResponseEntity.ok(campaign);
+    }
+
     @PostMapping("/new")
     @Operation(summary = "Save new campaign")
     public ResponseEntity<CampaignResponseDTO> save(
