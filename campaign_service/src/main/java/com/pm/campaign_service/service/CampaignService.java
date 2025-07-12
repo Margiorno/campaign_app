@@ -1,0 +1,135 @@
+package com.pm.campaign_service.service;
+
+import com.pm.campaign_service.dto.CampaignRequestDTO;
+import com.pm.campaign_service.dto.CampaignResponseDTO;
+import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
+import com.pm.campaign_service.exception.CampaignOperationException;
+import com.pm.campaign_service.mapper.CampaignMapper;
+import com.pm.campaign_service.model.Campaign;
+import com.pm.campaign_service.model.City;
+import com.pm.campaign_service.model.Product;
+import com.pm.campaign_service.repository.CampaignRepository;
+import com.pm.campaign_service.util.UuidUtil;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.StreamSupport;
+
+@Service
+public class CampaignService {
+    private final CampaignRepository campaignRepository;
+    private final CityService cityService;
+    private final ProductService productService;
+
+    @Autowired
+    public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService) {
+        this.campaignRepository = campaignRepository;
+        this.cityService = cityService;
+        this.productService = productService;
+    }
+
+    public List<CampaignResponseDTO> findAll() {
+        Iterable<Campaign> campaigns = campaignRepository.findAll();
+
+        return StreamSupport.stream(campaigns.spliterator(), false).map(CampaignMapper::toDTO).toList();
+    }
+
+    public CampaignResponseDTO save(CampaignRequestDTO campaignRequestDTO) {
+
+        if (!cityService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getCity())))
+            throw new CampaignOperationException("City with this id does not exist: " + campaignRequestDTO.getCity());
+
+        if(!productService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getProduct())))
+            throw new CampaignOperationException("Product with this id does not exist: " + campaignRequestDTO.getProduct());
+
+        if(campaignRepository.existsByName(campaignRequestDTO.getName()))
+            throw new CampaignOperationException("Campaign with this name already exists: " + campaignRequestDTO.getName());
+
+        City city = cityService.findById(campaignRequestDTO.getCity());
+        Product product = productService.findById(campaignRequestDTO.getProduct());
+
+        Campaign campaign = CampaignMapper.toModel(campaignRequestDTO,product,city);
+        campaign.setActive(false);
+        campaign.setCreated_at(LocalDateTime.now());
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        Campaign savedCampaign = campaignRepository.save(campaign);
+
+        return CampaignMapper.toDTO(savedCampaign);
+    }
+
+    @NotBlank(groups = CreateCampaignValidationGroup.class, message = "City is required")
+    private String city;
+
+    private int radius;
+
+    public CampaignResponseDTO update(CampaignRequestDTO campaignRequestDTO, UUID id) {
+
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+
+        if (campaignRequestDTO.getName() != null)
+            campaign.setName(campaignRequestDTO.getName());
+
+        if (campaignRequestDTO.getDescription() != null)
+            campaign.setDescription(campaignRequestDTO.getDescription());
+
+        if (campaignRequestDTO.getProduct() != null)
+            campaign.setProduct(productService.findById(campaignRequestDTO.getProduct()));
+
+        if (campaignRequestDTO.getKeywords() != null && !campaignRequestDTO.getKeywords().isEmpty())
+            campaign.setKeywords(campaignRequestDTO.getKeywords());
+
+        if (campaignRequestDTO.getBid_amount() != null)
+            campaign.setBid_amount(Double.parseDouble(campaignRequestDTO.getBid_amount()));
+
+        if (campaignRequestDTO.getCampaign_amount() != null) {
+            campaign.setCampaign_amount(Double.parseDouble(campaignRequestDTO.getCampaign_amount()));
+
+            if (Double.parseDouble(campaignRequestDTO.getCampaign_amount()) < campaign.getBid_amount())
+                campaign.setActive(false);
+        }
+
+        if (campaignRequestDTO.getCity() != null)
+            campaign.setCity(cityService.findById(campaignRequestDTO.getCity()));
+
+        if (campaignRequestDTO.getRadius() != null)
+            campaign.setRadius(Double.parseDouble(campaignRequestDTO.getRadius()));
+
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        Campaign savedCampaign = campaignRepository.save(campaign);
+        return CampaignMapper.toDTO(savedCampaign);
+    }
+
+    public void delete(UUID id) {
+        if (!campaignRepository.existsById(id))
+            throw new CampaignOperationException("Campaign with this id does not exist: " + id);
+
+        campaignRepository.deleteById(id);
+    }
+
+    public CampaignResponseDTO start(UUID id) {
+        Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+
+        if (campaign.getBid_amount() > campaign.getCampaign_amount())
+            throw new CampaignOperationException("Not enough founds" + campaign.getCampaign_amount());
+
+        campaign.setActive(true);
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        return CampaignMapper.toDTO(campaignRepository.save(campaign));
+    }
+
+    public CampaignResponseDTO stop(UUID id) {
+        Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+        campaign.setActive(false);
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        return CampaignMapper.toDTO(campaignRepository.save(campaign));
+    }
+}
