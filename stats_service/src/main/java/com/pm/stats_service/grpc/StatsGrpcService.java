@@ -19,7 +19,6 @@ public class StatsGrpcService extends StatsServiceGrpc.StatsServiceImplBase {
         this.statsService = statsService;
     }
 
-
     @Override
     public void getStatsById(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
         var statsDto = statsService.findById(UUID.fromString(request.getId()));
