@@ -493,7 +493,75 @@ public class CampaignTests {
                 .log().body();
     }
 
+    @Test
+    public void addCampaignWithInvalidBidAmount_shouldReturnBadRequest() {
+        String cityId = CityTests.createCity("City_" + System.currentTimeMillis(), 50.2, 20.1, 200, RestAssured.baseURI)
+                .jsonPath().getString("id");
 
+        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI)
+                .jsonPath().getString("id");
 
+        String payload = String.format("""
+        {
+            "name": "InvalidBid",
+            "description": "desc",
+            "product": "%s",
+            "keywords": ["test"],
+            "bid_amount": "abc",
+            "campaign_amount": "100.00",
+            "city": "%s",
+            "radius": "10.0"
+        }
+        """, productId, cityId);
 
+        RestAssured.given()
+                .contentType("application/json")
+                .body(payload)
+                .when()
+                .post("/campaign/new")
+                .then()
+                .statusCode(400)
+                .log().body();
+    }
+
+    @Test
+    public void updateCampaignNameOnly_shouldReturnOk() {
+        String cityId = CityTests.createCity("City_" + System.currentTimeMillis(), 50.1, 19.9, 200, RestAssured.baseURI)
+                .jsonPath().getString("id");
+
+        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI)
+                .jsonPath().getString("id");
+
+        String name = "Campaign_" + System.currentTimeMillis();
+
+        Response created = createCampaign(
+                name,
+                "desc",
+                productId,
+                "[\"keyword\"]",
+                "1.0",
+                "50.0",
+                cityId,
+                "5.0",
+                200,
+                RestAssured.baseURI
+        );
+
+        String campaignId = created.jsonPath().getString("id");
+
+        String updatePayload = """
+        {
+            "name": "UpdatedCampaignName"
+        }
+        """;
+
+        RestAssured.given()
+                .contentType("application/json")
+                .body(updatePayload)
+                .when()
+                .patch("/campaign/update/" + campaignId)
+                .then()
+                .statusCode(200)
+                .log().body();
+    }
 }
