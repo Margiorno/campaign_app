@@ -3,6 +3,8 @@ package com.pm.campaign_service.controller;
 import com.pm.campaign_service.dto.CityRequestDTO;
 import com.pm.campaign_service.dto.CityResponseDTO;
 import com.pm.campaign_service.service.CityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/city")
+@Tag(name = "Product", description = "API for managing Cities")
 public class CityController {
     private final CityService cityService;
 
@@ -22,6 +25,7 @@ public class CityController {
     }
 
     @GetMapping("/get")
+    @Operation(summary = "Get all cities")
     public ResponseEntity<List<CityResponseDTO>> findAll() {
         List<CityResponseDTO> cities = cityService.findAll();
 
@@ -29,6 +33,7 @@ public class CityController {
     }
 
     @PostMapping("/add")
+    @Operation(summary = "Save new city")
     public ResponseEntity<CityResponseDTO> save(@Valid @RequestBody CityRequestDTO cityRequestDTO) {
         CityResponseDTO city = cityService.save(cityRequestDTO);
 
@@ -36,6 +41,7 @@ public class CityController {
     }
 
     @PatchMapping("/update/{id}")
+    @Operation(summary = "Update city with given id")
     public ResponseEntity<CityResponseDTO> update(@Valid @RequestBody CityRequestDTO cityRequestDTO, @PathVariable UUID id) {
         CityResponseDTO city = cityService.update(id, cityRequestDTO);
 
@@ -43,6 +49,7 @@ public class CityController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Delete city with given id")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         cityService.delete(id);
 
@@ -50,6 +57,7 @@ public class CityController {
     }
 
     @GetMapping("/get/{id}")
+    @Operation(summary = "Get city with given id")
     public ResponseEntity<CityResponseDTO> findById(@PathVariable UUID id) {
         CityResponseDTO city = cityService.findById(id);
 
