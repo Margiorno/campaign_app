@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="campaign_service" />
+        <module name="stats_service" />
         <module name="tests" />
       </profile>
     </annotationProcessing>
@@ -18,6 +19,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="campaign_service" options="-parameters" />
       <module name="compaign_service" options="-parameters" />
+      <module name="stats_service" options="-parameters" />
       <module name="tests" options="" />
     </option>
   </component>
