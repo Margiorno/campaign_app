@@ -2,10 +2,13 @@ package com.pm.campaign_service.controller;
 
 import com.pm.campaign_service.dto.CampaignRequestDTO;
 import com.pm.campaign_service.dto.CampaignResponseDTO;
+import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
 import com.pm.campaign_service.service.CampaignService;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +32,8 @@ public class CampaignController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<CampaignResponseDTO> save(@Valid @RequestBody CampaignRequestDTO campaignRequestDTO) {
+    public ResponseEntity<CampaignResponseDTO> save(
+            @Validated({Default.class, CreateCampaignValidationGroup.class}) @RequestBody CampaignRequestDTO campaignRequestDTO) {
         CampaignResponseDTO campaign = campaignService.save(campaignRequestDTO);
 
         return ResponseEntity.ok(campaign);

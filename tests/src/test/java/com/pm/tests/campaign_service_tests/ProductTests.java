@@ -5,29 +5,28 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class CityTests {
+public class ProductTests {
 
     @BeforeAll
     static void setUp() {
         RestAssured.baseURI = "http://localhost:9000";
     }
 
-    public static Response createCity(String name, Double latitude, Double longitude, int expectedStatus, String baseUri) {
+    public static Response createProduct(String name, String description, int expectedStatus, String baseUri) {
         RestAssured.baseURI = baseUri;
 
         String payload = String.format("""
         {
           "name": "%s",
-          "latitude": %s,
-          "longitude": %s
+          "description": "%s"
         }
-        """, name, latitude != null ? latitude.toString() : "null", longitude != null ? longitude.toString() : "null");
+        """, name, description);
 
         return RestAssured.given()
                 .contentType("application/json")
                 .body(payload)
                 .when()
-                .post("/city/add")
+                .post("/product/add")
                 .then()
                 .assertThat()
                 .statusCode(expectedStatus)
@@ -36,8 +35,9 @@ public class CityTests {
     }
 
     @Test
-    public void addCity_shouldReturnOkRequest() {
-        String uniqueCityName = "City_" + System.currentTimeMillis();
-        createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
+    public void addProduct_shouldReturnOkRequest() {
+
+        String uniqueProductName = "Product_" + System.currentTimeMillis();
+        createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI);
     }
 }
