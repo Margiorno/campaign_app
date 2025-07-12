@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/campaign_service/pom.xml" />
         <option value="$PROJECT_DIR$/tests/pom.xml" />
         <option value="$PROJECT_DIR$/stats_service/pom.xml" />
+        <option value="$PROJECT_DIR$/proto-catalog/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

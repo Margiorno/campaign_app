@@ -2,7 +2,6 @@ package com.pm.stats_service.dto;
 
 public class StatsResponseDTO {
     private String id;
-    private String campaignId;
     private String clicks;
     private String spentAmount;
 
@@ -12,14 +11,6 @@ public class StatsResponseDTO {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getCampaignId() {
-        return campaignId;
-    }
-
-    public void setCampaignId(String campaignId) {
-        this.campaignId = campaignId;
     }
 
     public String getClicks() {
@@ -37,4 +28,5 @@ public class StatsResponseDTO {
     public void setSpentAmount(String spentAmount) {
         this.spentAmount = spentAmount;
     }
+
 }
