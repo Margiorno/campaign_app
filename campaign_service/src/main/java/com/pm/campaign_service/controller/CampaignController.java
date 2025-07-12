@@ -41,4 +41,25 @@ public class CampaignController {
 
         return ResponseEntity.ok(campaignResponseDTO);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        campaignService.delete(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/start")
+    public ResponseEntity<CampaignResponseDTO> start(@PathVariable UUID id) {
+        CampaignResponseDTO campaign = campaignService.start(id);
+
+        return ResponseEntity.ok(campaign);
+    }
+
+    @PostMapping("/{id}/stop")
+    public ResponseEntity<CampaignResponseDTO> stop(@PathVariable UUID id) {
+        CampaignResponseDTO campaign = campaignService.stop(id);
+
+        return ResponseEntity.ok(campaign);
+    }
 }

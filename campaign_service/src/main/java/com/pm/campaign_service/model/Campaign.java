@@ -43,7 +43,7 @@ public class Campaign {
     private City city;
 
     @NotNull
-    private int radius;
+    private double radius;
 
     @NotNull
     private LocalDateTime created_at;
@@ -102,7 +102,7 @@ public class Campaign {
     }
 
     @NotNull
-    @DecimalMin(value = "0.01")
+    @DecimalMin(value = "0.00")
     public double getCampaign_amount() {
         return campaign_amount;
     }
@@ -129,11 +129,11 @@ public class Campaign {
     }
 
     @NotNull
-    public int getRadius() {
+    public double getRadius() {
         return radius;
     }
 
-    public void setRadius(@NotNull int radius) {
+    public void setRadius(@NotNull double radius) {
         this.radius = radius;
     }
 

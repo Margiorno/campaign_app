@@ -4,22 +4,16 @@ import com.pm.campaign_service.dto.CampaignRequestDTO;
 import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
 import com.pm.campaign_service.exception.CampaignOperationException;
-import com.pm.campaign_service.exception.CityOperationException;
 import com.pm.campaign_service.mapper.CampaignMapper;
-import com.pm.campaign_service.mapper.CityMapper;
 import com.pm.campaign_service.model.Campaign;
 import com.pm.campaign_service.model.City;
 import com.pm.campaign_service.model.Product;
 import com.pm.campaign_service.repository.CampaignRepository;
-import com.pm.campaign_service.repository.CityRepository;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
@@ -27,7 +21,6 @@ import java.util.stream.StreamSupport;
 @Service
 public class CampaignService {
     private final CampaignRepository campaignRepository;
-
     private final CityService cityService;
     private final ProductService productService;
 
@@ -66,7 +59,6 @@ public class CampaignService {
         return CampaignMapper.toDTO(savedCampaign);
     }
 
-
     @NotBlank(groups = CreateCampaignValidationGroup.class, message = "City is required")
     private String city;
 
@@ -89,28 +81,52 @@ public class CampaignService {
         if (campaignRequestDTO.getKeywords() != null && !campaignRequestDTO.getKeywords().isEmpty())
             campaign.setKeywords(campaignRequestDTO.getKeywords());
 
-        if (campaignRequestDTO.getBid_amount() != 0.0)
-            campaign.setBid_amount(campaignRequestDTO.getBid_amount());
-        // TODO I have to find solution to problem that bid amount is null
+        if (campaignRequestDTO.getBid_amount() != null)
+            campaign.setBid_amount(Double.parseDouble(campaignRequestDTO.getBid_amount()));
 
-        if (campaignRequestDTO.getCampaign_amount() != 0.0) {
-            campaign.setCampaign_amount(campaignRequestDTO.getCampaign_amount());
+        if (campaignRequestDTO.getCampaign_amount() != null) {
+            campaign.setCampaign_amount(Double.parseDouble(campaignRequestDTO.getCampaign_amount()));
 
-            // TODO CAMPAIGN_AMOUNT < BID_AMOUNT && REBUILD THIS && I have to find solution to problem that campaign amount is null
+            if (Double.parseDouble(campaignRequestDTO.getCampaign_amount()) < campaign.getBid_amount())
+                campaign.setActive(false);
         }
 
         if (campaignRequestDTO.getCity() != null)
             campaign.setCity(cityService.findById(campaignRequestDTO.getCity()));
 
-        if (campaignRequestDTO.getRadius() != 0)
-            campaign.setRadius(campaignRequestDTO.getRadius());
-        // TODO I have to find solution to problem that radius is null
-
-        // NOTE: maybe string in request instead of double/int is sollution to those problems
+        if (campaignRequestDTO.getRadius() != null)
+            campaign.setRadius(Double.parseDouble(campaignRequestDTO.getRadius()));
 
         campaign.setUpdated_at(LocalDateTime.now());
 
         Campaign savedCampaign = campaignRepository.save(campaign);
         return CampaignMapper.toDTO(savedCampaign);
+    }
+
+    public void delete(UUID id) {
+        if (!campaignRepository.existsById(id))
+            throw new CampaignOperationException("Campaign with this id does not exist: " + id);
+
+        campaignRepository.deleteById(id);
+    }
+
+    public CampaignResponseDTO start(UUID id) {
+        Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+
+        if (campaign.getBid_amount() > campaign.getCampaign_amount())
+            throw new CampaignOperationException("Not enough founds" + campaign.getCampaign_amount());
+
+        campaign.setActive(true);
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        return CampaignMapper.toDTO(campaignRepository.save(campaign));
+    }
+
+    public CampaignResponseDTO stop(UUID id) {
+        Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
+        campaign.setActive(false);
+        campaign.setUpdated_at(LocalDateTime.now());
+
+        return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }
 }

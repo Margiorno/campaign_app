@@ -22,16 +22,16 @@ public class CampaignRequestDTO {
 
     @NotEmpty(groups = CreateCampaignValidationGroup.class, message = "Bid amount is required")
     @DecimalMin(value = "0.01")
-    private double bid_amount;
+    private String bid_amount;
 
     @DecimalMin(value = "0.00")
-    private double campaign_amount;
+    private String campaign_amount;
 
     @NotBlank(groups = CreateCampaignValidationGroup.class, message = "City is required")
     private String city;
 
-    @Min(0)
-    private int radius;
+    @DecimalMin(value = "0.00")
+    private String radius;
 
     public @NotBlank(groups = CreateCampaignValidationGroup.class, message = "Name is required") String getName() {
         return name;
@@ -65,22 +65,19 @@ public class CampaignRequestDTO {
         this.keywords = keywords;
     }
 
-    @NotEmpty(groups = CreateCampaignValidationGroup.class, message = "Bid amount is required")
-    @DecimalMin(value = "0.01")
-    public double getBid_amount() {
+    public @NotEmpty(groups = CreateCampaignValidationGroup.class, message = "Bid amount is required") @DecimalMin(value = "0.01") String getBid_amount() {
         return bid_amount;
     }
 
-    public void setBid_amount(@NotEmpty(groups = CreateCampaignValidationGroup.class, message = "Bid amount is required") @DecimalMin(value = "0.01") double bid_amount) {
+    public void setBid_amount(@NotEmpty(groups = CreateCampaignValidationGroup.class, message = "Bid amount is required") @DecimalMin(value = "0.01") String bid_amount) {
         this.bid_amount = bid_amount;
     }
 
-    @DecimalMin(value = "0.00")
-    public double getCampaign_amount() {
+    public @DecimalMin(value = "0.00") String getCampaign_amount() {
         return campaign_amount;
     }
 
-    public void setCampaign_amount(@DecimalMin(value = "0.00") double campaign_amount) {
+    public void setCampaign_amount(@DecimalMin(value = "0.00") String campaign_amount) {
         this.campaign_amount = campaign_amount;
     }
 
@@ -92,12 +89,11 @@ public class CampaignRequestDTO {
         this.city = city;
     }
 
-    @Min(0)
-    public int getRadius() {
+    public @DecimalMin(value = "0.00") String getRadius() {
         return radius;
     }
 
-    public void setRadius(@Min(0) int radius) {
+    public void setRadius(@DecimalMin(value = "0.00") String radius) {
         this.radius = radius;
     }
 }
