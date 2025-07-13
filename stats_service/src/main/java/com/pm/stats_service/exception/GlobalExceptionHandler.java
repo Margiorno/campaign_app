@@ -13,14 +13,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(StatsOperationException.class)
-    public ResponseEntity<Map<String,String>> handleCampaignOperationException(StatsOperationException ex) {
-        Map<String,String> map = new HashMap<>();
-
-        map.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(map);
-    }
-
-    @ExceptionHandler(StatsOperationException.class)
     public ResponseEntity<Map<String,String>> handleStatsOperationException(StatsOperationException ex) {
         Map<String,String> map = new HashMap<>();
 
