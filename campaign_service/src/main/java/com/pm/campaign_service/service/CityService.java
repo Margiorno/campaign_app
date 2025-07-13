@@ -23,6 +23,7 @@ public class CityService {
     }
 
     public List<CityResponseDTO> findAll() {
+
         Iterable<City> cities = cityRepository.findAll();
 
         return StreamSupport.stream(cities.spliterator(), false).map(CityMapper::toDTO).toList();
