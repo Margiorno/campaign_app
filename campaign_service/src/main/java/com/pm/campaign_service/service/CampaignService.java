@@ -14,6 +14,8 @@ import com.pm.campaign_service.util.GrpcExceptionUtil;
 import com.pm.campaign_service.util.UuidUtil;
 import io.grpc.StatusRuntimeException;
 import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class CampaignService {
     private final CityService cityService;
     private final ProductService productService;
     private final StatsGrpcClient statsGrpcClient;
+    private static final Logger logger = LoggerFactory.getLogger(CampaignService.class);
 
     @Autowired
     public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService, StatsGrpcClient statsGrpcClient) {
@@ -135,12 +138,15 @@ public class CampaignService {
 
     @Transactional
     public void delete(UUID id) {
-        if (!campaignRepository.existsById(id))
+
+        if (!campaignRepository.existsById(id)) {
             throw new CampaignOperationException("Campaign with this id does not exist: " + id);
+        }
 
         try {
             statsGrpcClient.deleteStats(id.toString());
         } catch (StatusRuntimeException e) {
+            logger.error("Status: {}, Message: {}", e.getStatus(), e.getMessage(), e);
             throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to get stats for campaign: " + id);
         }
 

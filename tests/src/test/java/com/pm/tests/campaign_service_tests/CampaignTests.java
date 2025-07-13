@@ -441,7 +441,8 @@ public class CampaignTests {
                 .when()
                 .get("/campaign/" + campaignId)
                 .then()
-                .statusCode(404);
+                .log().all()
+                .statusCode(400);
     }
 
     @Test

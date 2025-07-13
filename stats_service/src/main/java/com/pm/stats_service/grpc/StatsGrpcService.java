@@ -88,6 +88,12 @@ public class StatsGrpcService extends StatsServiceGrpc.StatsServiceImplBase {
     public void deleteStats(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
         try {
             statsService.deleteById(UUID.fromString(request.getId()));
+
+            StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
+                    .setId(request.getId())
+                    .build();
+
+            responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (StatsOperationException e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());

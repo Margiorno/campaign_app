@@ -62,12 +62,6 @@ public class StatsService {
         }
 
         statsRepository.deleteByCampaignId(id);
-
-        try {
-            campaignGrpcClient.deleteCampaign(id.toString());
-        } catch (io.grpc.StatusRuntimeException e) {
-            throw GrpcExceptionUtil.mapToGrpcException(e, "Error while deleting campaign with id " + id);
-        }
     }
 
     public StatsResponseDTO registerClick(UUID id) {

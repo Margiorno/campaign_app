@@ -33,13 +33,6 @@ public class StatsController {
         return ResponseEntity.ok(stats);
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        statsService.deleteById(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("{id}/click")
     public ResponseEntity<StatsResponseDTO> registerClick(@PathVariable UUID id) {
         StatsResponseDTO stats = statsService.registerClick(id);
