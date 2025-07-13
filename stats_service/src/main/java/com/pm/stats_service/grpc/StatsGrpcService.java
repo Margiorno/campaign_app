@@ -2,7 +2,9 @@ package com.pm.stats_service.grpc;
 
 import com.pm.proto.StatsProto;
 import com.pm.proto.StatsServiceGrpc;
+import com.pm.stats_service.exception.StatsOperationException;
 import com.pm.stats_service.service.StatsService;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,48 +23,67 @@ public class StatsGrpcService extends StatsServiceGrpc.StatsServiceImplBase {
 
     @Override
     public void getStatsById(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
-        var statsDto = statsService.findById(UUID.fromString(request.getId()));
-
-        StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
-                .setId(statsDto.getId())
-                .setClicks(Long.parseLong(statsDto.getClicks()))
-                .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        try {
+            var statsDto = statsService.findById(UUID.fromString(request.getId()));
+            StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
+                    .setId(statsDto.getId())
+                    .setClicks(Long.parseLong(statsDto.getClicks()))
+                    .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (StatsOperationException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal error").withCause(e).asRuntimeException());
+        }
     }
 
     @Override
     public void createStats(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
-        var statsDto = statsService.create(UUID.fromString(request.getId()));
-
-        StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
-                .setId(statsDto.getId())
-                .setClicks(Long.parseLong(statsDto.getClicks()))
-                .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        try {
+            var statsDto = statsService.create(UUID.fromString(request.getId()));
+            StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
+                    .setId(statsDto.getId())
+                    .setClicks(Long.parseLong(statsDto.getClicks()))
+                    .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (StatsOperationException e) {
+            responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal error").withCause(e).asRuntimeException());
+        }
     }
 
     @Override
     public void registerClick(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
-        var statsDto = statsService.registerClick(UUID.fromString(request.getId()));
-        StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
-                .setId(statsDto.getId())
-                .setClicks(Long.parseLong(statsDto.getClicks()))
-                .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
-                .build();
-
-        super.registerClick(request, responseObserver);
+        try {
+            var statsDto = statsService.registerClick(UUID.fromString(request.getId()));
+            StatsProto.StatsResponse response = StatsProto.StatsResponse.newBuilder()
+                    .setId(statsDto.getId())
+                    .setClicks(Long.parseLong(statsDto.getClicks()))
+                    .setSpentAmount(Double.parseDouble(statsDto.getSpentAmount()))
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (StatsOperationException e) {
+            responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal error").withCause(e).asRuntimeException());
+        }
     }
 
     @Override
     public void deleteStats(StatsProto.StatsRequest request, StreamObserver<StatsProto.StatsResponse> responseObserver) {
-        statsService.deleteById(UUID.fromString(request.getId()));
-
-        super.deleteStats(request, responseObserver);
+        try {
+            statsService.deleteById(UUID.fromString(request.getId()));
+            responseObserver.onCompleted();
+        } catch (StatsOperationException e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal error").withCause(e).asRuntimeException());
+        }
     }
 }

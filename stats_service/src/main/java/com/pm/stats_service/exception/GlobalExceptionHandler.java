@@ -28,6 +28,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(map);
     }
 
+    @ExceptionHandler(GrpcRequestException.class)
+    public ResponseEntity<Map<String,String>> handleGrpcRequestException(GrpcRequestException ex) {
+        Map<String,String> map = new HashMap<>();
+
+        map.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(map);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

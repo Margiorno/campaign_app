@@ -7,8 +7,10 @@ import com.pm.stats_service.exception.StatsOperationException;
 import com.pm.stats_service.mapper.StatsMapper;
 import com.pm.stats_service.model.Stats;
 import com.pm.stats_service.repository.StatsRepository;
+import com.pm.stats_service.util.GrpcExceptionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,76 +44,73 @@ public class StatsService {
         if (statsRepository.existsById(id))
             throw new StatsOperationException("Campaign with that id already exists: " + id);
 
-        CampaignProto.CampaignResponse campaign;
-        try {
-            campaign = campaignGrpcClient.getCampaignById(id.toString());
-        } catch (io.grpc.StatusRuntimeException e) {
-            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
-                throw new StatsOperationException("Campaign with that id does not exist: " + id);
-            }
-            throw new StatsOperationException(e.getMessage());
-        }
-
-        if (!campaign.getActive())
-            throw new StatsOperationException("Campaign with that id is inactive");
+        CampaignProto.CampaignResponse campaign = getCampaignOrThrow(id);
+        validateCampaignIsActive(campaign);
 
         Stats stats = new Stats();
-        stats.setId(UUID.randomUUID());
+        stats.setId(id);
 
         return StatsMapper.toDTO(statsRepository.save(stats));
     }
 
+    @Transactional
     public void deleteById(UUID id) {
         if (!statsRepository.existsById(id)) {
             throw new StatsOperationException("Stats with that id does not exist: " + id);
         }
 
+        statsRepository.deleteById(id);
+
         try {
             campaignGrpcClient.deleteCampaign(id.toString());
         } catch (io.grpc.StatusRuntimeException e) {
-            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
-                throw new StatsOperationException("Campaign with that id does not exist in campaign service: " + id);
-            }
-            throw new StatsOperationException("Error while deleting campaign: " + e.getMessage());
+            throw GrpcExceptionUtil.mapToGrpcException(e, "Error while deleting campaign with id " + id);
         }
-
-        statsRepository.deleteById(id);
     }
-
 
     public StatsResponseDTO registerClick(UUID id) {
         Stats stats = statsRepository.findById(id).orElseThrow(
                 ()-> new StatsOperationException("Campaign with that id does not exists: " + id)
         );
 
-        CampaignProto.CampaignResponse campaign;
-        try {
-            campaign = campaignGrpcClient.getCampaignById(id.toString());
-        } catch (io.grpc.StatusRuntimeException e) {
-            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
-                throw new StatsOperationException("Campaign with that id does not exist: " + id);
-            }
-            throw new StatsOperationException(e.getMessage());
-        }
-
-        if (!campaign.getActive())
-            throw new StatsOperationException("Campaign with that id is inactive");
+        CampaignProto.CampaignResponse campaign = getCampaignOrThrow(id);
+        validateCampaignIsActive(campaign);
 
         double campaignAmount = campaign.getCampaignAmount();
         double spentAmount = stats.getSpentAmount();
         double bidAmount = campaign.getBidAmount();
 
         if (campaignAmount - spentAmount < bidAmount){
-            // TODO grpc endpoint to stop campaign
+            try {
+                campaignGrpcClient.stopCampaign(id.toString());
+            } catch (io.grpc.StatusRuntimeException e) {
+                throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to stop campaign with id " + id);
+            }
 
-            throw new StatsOperationException("Not enough founds");
+            throw new StatsOperationException("Not enough funds");
         }
 
-        stats.setSpentAmount(stats.getSpentAmount() + campaignAmount);
+        stats.setSpentAmount(stats.getSpentAmount() + bidAmount);
         stats.setClicks(stats.getClicks() + 1);
 
         Stats saved = statsRepository.save(stats);
         return StatsMapper.toDTO(saved);
+    }
 
+
+
+    // UTIL METHODS:
+    private CampaignProto.CampaignResponse getCampaignOrThrow(UUID id) {
+        try {
+            return campaignGrpcClient.getCampaignById(id.toString());
+        } catch (io.grpc.StatusRuntimeException e) {
+            throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to fetch campaign with id " + id);
+        }
+    }
+
+    private void validateCampaignIsActive(CampaignProto.CampaignResponse campaign) {
+        if (!campaign.getActive()) {
+            throw new StatsOperationException("Campaign with that id is inactive");
+        }
     }
 }

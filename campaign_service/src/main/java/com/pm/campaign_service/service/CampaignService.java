@@ -1,5 +1,6 @@
 package com.pm.campaign_service.service;
 
+import com.pm.campaign_service.client.StatsGrpcClient;
 import com.pm.campaign_service.dto.CampaignRequestDTO;
 import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
@@ -9,10 +10,13 @@ import com.pm.campaign_service.model.Campaign;
 import com.pm.campaign_service.model.City;
 import com.pm.campaign_service.model.Product;
 import com.pm.campaign_service.repository.CampaignRepository;
+import com.pm.campaign_service.util.GrpcExceptionUtil;
 import com.pm.campaign_service.util.UuidUtil;
+import io.grpc.StatusRuntimeException;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,12 +28,14 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final CityService cityService;
     private final ProductService productService;
+    private final StatsGrpcClient statsGrpcClient;
 
     @Autowired
-    public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService) {
+    public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService, StatsGrpcClient statsGrpcClient) {
         this.campaignRepository = campaignRepository;
         this.cityService = cityService;
         this.productService = productService;
+        this.statsGrpcClient = statsGrpcClient;
     }
 
     public List<CampaignResponseDTO> findAll() {
@@ -45,6 +51,7 @@ public class CampaignService {
         return CampaignMapper.toDTO(campaign);
     }
 
+    @Transactional
     public CampaignResponseDTO save(CampaignRequestDTO campaignRequestDTO) {
 
         if (!cityService.existsById(UuidUtil.parseUuidOrThrow(campaignRequestDTO.getCity())))
@@ -66,10 +73,16 @@ public class CampaignService {
 
         Campaign savedCampaign = campaignRepository.save(campaign);
 
+        try {
+            statsGrpcClient.createStats(savedCampaign.getId().toString());
+        } catch (StatusRuntimeException e) {
+            throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to create stats for campaign");
+        }
+
         return CampaignMapper.toDTO(savedCampaign);
     }
 
-
+    @Transactional
     public CampaignResponseDTO update(CampaignRequestDTO campaignRequestDTO, UUID id) {
 
         Campaign campaign = campaignRepository.findById(id)
@@ -105,20 +118,36 @@ public class CampaignService {
 
         campaign.setUpdated_at(LocalDateTime.now());
 
+        double spentAmount;
+        try {
+            spentAmount = statsGrpcClient.getStatsById(id.toString()).getSpentAmount();
+        } catch (StatusRuntimeException e) {
+            throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to get stats for campaign: " + id);
+        }
+
+        if (spentAmount + campaign.getBid_amount() > campaign.getCampaign_amount())
+            campaign.setActive(false);
+
         Campaign savedCampaign = campaignRepository.save(campaign);
 
-        // TODO communication with stats service (creation of new stats)
         return CampaignMapper.toDTO(savedCampaign);
     }
 
+    @Transactional
     public void delete(UUID id) {
         if (!campaignRepository.existsById(id))
             throw new CampaignOperationException("Campaign with this id does not exist: " + id);
 
-        // TODO communication with stats service (deletion of stats)
+        try {
+            statsGrpcClient.deleteStats(id.toString());
+        } catch (StatusRuntimeException e) {
+            throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to get stats for campaign: " + id);
+        }
+
         campaignRepository.deleteById(id);
     }
 
+    @Transactional
     public CampaignResponseDTO start(UUID id) {
         Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
 
@@ -127,16 +156,15 @@ public class CampaignService {
 
         campaign.setActive(true);
         campaign.setUpdated_at(LocalDateTime.now());
-        // TODO communication with stats service (that campaign is active)
 
         return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }
 
+    @Transactional
     public CampaignResponseDTO stop(UUID id) {
         Campaign campaign = campaignRepository.findById(id).orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + id));
         campaign.setActive(false);
         campaign.setUpdated_at(LocalDateTime.now());
-        // TODO communication with stats service (that campaign is inactive)
 
         return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }

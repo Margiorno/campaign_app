@@ -1,5 +1,7 @@
 package com.pm.campaign_service.grpc;
 
+import com.pm.campaign_service.dto.CampaignRequestDTO;
+import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.exception.CampaignOperationException;
 import com.pm.campaign_service.mapper.CampaignMapper;
 import com.pm.proto.CampaignProto;
@@ -25,81 +27,115 @@ public class CampaignGrpcService extends CampaignServiceGrpc.CampaignServiceImpl
     @Override
     public void getCampaignById(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
         try {
-            var id = UUID.fromString(request.getId());
-            var responseDTO = campaignService.findById(id);
-            var response = CampaignMapper.toProto(responseDTO);
-
+            UUID id = UUID.fromString(request.getId());
+            CampaignResponseDTO dto = campaignService.findById(id);
+            CampaignProto.CampaignResponse response = CampaignMapper.toProto(dto);
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (CampaignOperationException e) {
-            responseObserver.onError(
-                    Status.NOT_FOUND
-                            .withDescription(e.getMessage())
-                            .asRuntimeException()
-            );
-        } catch (IllegalArgumentException e) {
-            responseObserver.onError(
-                    Status.INVALID_ARGUMENT
-                            .withDescription("Invalid UUID format: " + e.getMessage())
-                            .asRuntimeException()
-            );
+        } catch (IllegalArgumentException iae) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Invalid UUID format: " + iae.getMessage())
+                    .asRuntimeException());
+        } catch (CampaignOperationException coe) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(coe.getMessage())
+                    .asRuntimeException());
         } catch (Exception e) {
-            responseObserver.onError(
-                    Status.INTERNAL
-                            .withDescription("Internal server error: " + e.getMessage())
-                            .asRuntimeException()
-            );
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
         }
     }
 
     @Override
     public void createCampaign(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
-        var requestDTO = CampaignMapper.fromProto(request);
-        var responseDTO = campaignService.save(requestDTO);
-        var response = CampaignMapper.toProto(responseDTO);
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        try {
+            CampaignRequestDTO dto = CampaignMapper.fromProto(request);
+            CampaignResponseDTO result = campaignService.save(dto);
+            CampaignProto.CampaignResponse response = CampaignMapper.toProto(result);
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (CampaignOperationException coe) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription(coe.getMessage())
+                    .asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
+        }
     }
 
     @Override
     public void updateCampaign(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
-        var id = UUID.fromString(request.getId());
-        var requestDTO = CampaignMapper.fromProto(request);
-        var responseDTO = campaignService.update(requestDTO, id);
-        var response = CampaignMapper.toProto(responseDTO);
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        try {
+            UUID id = UUID.fromString(request.getId());
+            CampaignRequestDTO dto = CampaignMapper.fromProto(request);
+            CampaignResponseDTO result = campaignService.update(dto, id);
+            CampaignProto.CampaignResponse response = CampaignMapper.toProto(result);
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException iae) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Invalid UUID format: " + iae.getMessage())
+                    .asRuntimeException());
+        } catch (CampaignOperationException coe) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(coe.getMessage())
+                    .asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
+        }
     }
 
     @Override
     public void deleteCampaign(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
         try {
-            var id = UUID.fromString(request.getId());
+            UUID id = UUID.fromString(request.getId());
             campaignService.delete(id);
-
-            var response = CampaignProto.CampaignResponse.newBuilder().setId(id.toString()).build();
+            CampaignProto.CampaignResponse response = CampaignProto.CampaignResponse.newBuilder()
+                    .setId(id.toString())
+                    .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (CampaignOperationException e) {
-            responseObserver.onError(
-                    Status.NOT_FOUND
-                            .withDescription(e.getMessage())
-                            .asRuntimeException()
-            );
-        } catch (IllegalArgumentException e) {
-            responseObserver.onError(
-                    Status.INVALID_ARGUMENT
-                            .withDescription("Invalid UUID format: " + e.getMessage())
-                            .asRuntimeException()
-            );
+        } catch (IllegalArgumentException iae) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Invalid UUID format: " + iae.getMessage())
+                    .asRuntimeException());
+        } catch (CampaignOperationException coe) {
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(coe.getMessage())
+                    .asRuntimeException());
         } catch (Exception e) {
-            responseObserver.onError(
-                    Status.INTERNAL
-                            .withDescription("Internal server error: " + e.getMessage())
-                            .asRuntimeException()
-            );
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
+        }
+    }
+
+
+    @Override
+    public void stopCampaign(CampaignProto.CampaignRequest request, StreamObserver<CampaignProto.CampaignResponse> responseObserver) {
+        try {
+            UUID id = UUID.fromString(request.getId());
+            CampaignResponseDTO result = campaignService.stop(id);
+            CampaignProto.CampaignResponse response = CampaignMapper.toProto(result);
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException iae) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Invalid UUID format: " + iae.getMessage())
+                    .asRuntimeException());
+        } catch (CampaignOperationException coe) {
+            responseObserver.onError(Status.FAILED_PRECONDITION
+                    .withDescription(coe.getMessage())
+                    .asRuntimeException());
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
         }
     }
 }

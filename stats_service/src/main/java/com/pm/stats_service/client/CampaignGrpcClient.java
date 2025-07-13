@@ -34,4 +34,12 @@ public class CampaignGrpcClient {
 
         return campaignStub.deleteCampaign(request);
     }
+
+    public CampaignProto.CampaignResponse stopCampaign(String id) {
+        var request = CampaignProto.CampaignRequest.newBuilder()
+                .setId(id)
+                .build();
+
+        return campaignStub.stopCampaign(request);
+    }
 }
