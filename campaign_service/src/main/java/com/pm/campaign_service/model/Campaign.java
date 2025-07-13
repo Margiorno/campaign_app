@@ -27,7 +27,7 @@ public class Campaign {
     private Product product;
 
     @NotEmpty
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> keywords = new ArrayList<>();
 
     @NotNull

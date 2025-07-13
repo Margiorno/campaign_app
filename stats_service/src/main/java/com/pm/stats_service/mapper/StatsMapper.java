@@ -7,9 +7,9 @@ public class StatsMapper {
     public static StatsResponseDTO toDTO(Stats stats) {
         StatsResponseDTO dto = new StatsResponseDTO();
 
-        dto.setId(stats.getId().toString());
-        dto.setClicks(Long.toString(stats.getClicks()));
-        dto.setSpentAmount(Double.toString(stats.getSpentAmount()));
+        dto.setId(stats.getCampaignId().toString());
+        dto.setClicks(stats.getClicks());
+        dto.setSpentAmount(stats.getSpentAmount());
 
         return dto;
     }

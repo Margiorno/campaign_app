@@ -34,32 +34,34 @@ public class StatsService {
     }
 
     public StatsResponseDTO findById(UUID id) {
-        Stats stats = statsRepository.findById(id).orElseThrow(
+        Stats stats = statsRepository.findByCampaignId(id).orElseThrow(
                 ()-> new StatsOperationException("Campaign with that id does not exists: " + id));
 
         return StatsMapper.toDTO(stats);
     }
 
     public StatsResponseDTO create(UUID id) {
-        if (statsRepository.existsById(id))
+        if (statsRepository.existsByCampaignId(id))
             throw new StatsOperationException("Campaign with that id already exists: " + id);
 
-        CampaignProto.CampaignResponse campaign = getCampaignOrThrow(id);
-        validateCampaignIsActive(campaign);
+//        CampaignProto.CampaignResponse campaign = getCampaignOrThrow(id);
+//        validateCampaignIsActive(campaign);
 
         Stats stats = new Stats();
-        stats.setId(id);
+        stats.setCampaignId(id);
+        stats.setClicks(0);
+        stats.setSpentAmount(0);
 
         return StatsMapper.toDTO(statsRepository.save(stats));
     }
 
     @Transactional
     public void deleteById(UUID id) {
-        if (!statsRepository.existsById(id)) {
+        if (!statsRepository.existsByCampaignId(id)) {
             throw new StatsOperationException("Stats with that id does not exist: " + id);
         }
 
-        statsRepository.deleteById(id);
+        statsRepository.deleteByCampaignId(id);
 
         try {
             campaignGrpcClient.deleteCampaign(id.toString());
@@ -69,7 +71,7 @@ public class StatsService {
     }
 
     public StatsResponseDTO registerClick(UUID id) {
-        Stats stats = statsRepository.findById(id).orElseThrow(
+        Stats stats = statsRepository.findByCampaignId(id).orElseThrow(
                 ()-> new StatsOperationException("Campaign with that id does not exists: " + id)
         );
 

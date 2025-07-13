@@ -33,14 +33,6 @@ public class StatsController {
         return ResponseEntity.ok(stats);
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<StatsResponseDTO> create(@RequestParam UUID id) {
-        StatsResponseDTO stats = statsService.create(id);
-
-        return ResponseEntity.ok(stats);
-    }
-
-
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         statsService.deleteById(id);

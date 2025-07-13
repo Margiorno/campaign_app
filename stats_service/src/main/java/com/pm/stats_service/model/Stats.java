@@ -2,7 +2,6 @@ package com.pm.stats_service.model;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -11,15 +10,18 @@ public class Stats {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(unique = true, nullable = false)
+    private UUID campaignId;
+
     private long clicks;
     private double spentAmount;
 
-    public UUID getId() {
-        return id;
+    public UUID getCampaignId() {
+        return campaignId;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setCampaignId(UUID id) {
+        this.campaignId = id;
     }
 
     public long getClicks() {
