@@ -163,4 +163,126 @@ public class PermissionsTests {
                 .then()
                 .statusCode(204);
     }
+
+    @Test
+    public void getAllProducts_asAdmin_shouldReturnAllProducts() {
+        String adminToken = AuthTests.getLoginToken("admin@example.com", "password", authURI);
+
+        int initialCount = RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/product/get")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$")
+                .size();
+
+        String user1Token = AuthTests.getRegisterToken("user1_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+        ProductTests.createProduct("Product1_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI, user1Token);
+
+        String user2Token = AuthTests.getRegisterToken("user2_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+        ProductTests.createProduct("Product2_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI, user2Token);
+
+        int finalCount = RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/product/get")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$")
+                .size();
+
+        Assertions.assertEquals(initialCount + 2, finalCount);
+    }
+
+    @Test
+    public void getAllProducts_asUser_shouldReturnOnlyOwnedProducts() {
+        String userToken = AuthTests.getRegisterToken("user_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+        String uniqueName = "MyProduct_" + System.currentTimeMillis();
+        ProductTests.createProduct(uniqueName, "desc", 200, RestAssured.baseURI, userToken);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + userToken)
+                .when()
+                .get("/product/get")
+                .then()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].name", equalTo(uniqueName));
+    }
+
+    @Test
+    public void getOrDeleteProduct_asNonOwner_shouldBeForbidden() {
+        String user1Token = AuthTests.getRegisterToken("user1_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+        String productName = "OwnedProduct_" + System.currentTimeMillis();
+        String productId = ProductTests.createProduct(productName, "desc", 200, RestAssured.baseURI, user1Token)
+                .jsonPath().getString("id");
+
+        String user2Token = AuthTests.getRegisterToken("user2_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + user2Token)
+                .when()
+                .get("/product/get/" + productId)
+                .then()
+                .statusCode(400);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + user2Token)
+                .contentType("application/json")
+                .body("{\"name\": \"hacked\", \"description\": \"hacked\"}")
+                .when()
+                .patch("/product/update/" + productId)
+                .then()
+                .statusCode(400);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + user2Token)
+                .when()
+                .delete("/product/delete/" + productId)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void getOrDeleteProduct_asAdmin_shouldBeAllowed() {
+        String userToken = AuthTests.getRegisterToken("user_" + System.currentTimeMillis() + "@test.com", "password", authURI);
+        String productName = "UserProduct_" + System.currentTimeMillis();
+        String productId = ProductTests.createProduct(productName, "desc", 200, RestAssured.baseURI, userToken)
+                .jsonPath().getString("id");
+
+        String adminToken = AuthTests.getLoginToken("admin@example.com", "password", authURI);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/product/get/" + productId)
+                .then()
+                .statusCode(200)
+                .body("name", equalTo(productName));
+
+        String updatedName = "UpdatedByAdmin_" + System.currentTimeMillis();
+        RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType("application/json")
+                .body("{\"name\": \"" + updatedName + "\", \"description\": \"updated desc\"}")
+                .when()
+                .patch("/product/update/" + productId)
+                .then()
+                .statusCode(200)
+                .body("name", equalTo(updatedName));
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .delete("/product/delete/" + productId)
+                .then()
+                .log().all()
+                .statusCode(204);
+    }
+
 }

@@ -84,10 +84,12 @@ public class ProductService {
         return ProductMapper.toDTO(savedProduct);
     }
 
+    @Transactional
     public void delete(UUID id) {
         if (!productRepository.existsById(id))
             throw new ProductOperationException("Product with id " + id + " not found");
 
+        productOwnershipRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
 
