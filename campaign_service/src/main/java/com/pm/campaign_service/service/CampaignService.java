@@ -3,17 +3,17 @@ package com.pm.campaign_service.service;
 import com.pm.campaign_service.client.StatsGrpcClient;
 import com.pm.campaign_service.dto.CampaignRequestDTO;
 import com.pm.campaign_service.dto.CampaignResponseDTO;
-import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
 import com.pm.campaign_service.exception.CampaignOperationException;
 import com.pm.campaign_service.mapper.CampaignMapper;
 import com.pm.campaign_service.model.Campaign;
+import com.pm.campaign_service.model.CampaignOwnership;
 import com.pm.campaign_service.model.City;
 import com.pm.campaign_service.model.Product;
+import com.pm.campaign_service.repository.CampaignOwnershipRepository;
 import com.pm.campaign_service.repository.CampaignRepository;
 import com.pm.campaign_service.util.GrpcExceptionUtil;
 import com.pm.campaign_service.util.UuidUtil;
 import io.grpc.StatusRuntimeException;
-import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +32,15 @@ public class CampaignService {
     private final ProductService productService;
     private final StatsGrpcClient statsGrpcClient;
     private static final Logger logger = LoggerFactory.getLogger(CampaignService.class);
+    private final CampaignOwnershipRepository campaignOwnershipRepository;
 
     @Autowired
-    public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService, StatsGrpcClient statsGrpcClient) {
+    public CampaignService(CampaignRepository campaignRepository, CityService cityService, ProductService productService, StatsGrpcClient statsGrpcClient, CampaignOwnershipRepository campaignOwnershipRepository) {
         this.campaignRepository = campaignRepository;
         this.cityService = cityService;
         this.productService = productService;
         this.statsGrpcClient = statsGrpcClient;
+        this.campaignOwnershipRepository = campaignOwnershipRepository;
     }
 
     public List<CampaignResponseDTO> findAll() {
@@ -46,6 +48,17 @@ public class CampaignService {
 
         return StreamSupport.stream(campaigns.spliterator(), false).map(CampaignMapper::toDTO).toList();
     }
+
+    public List<CampaignResponseDTO> findAllByUserId(String userId) {
+        UUID uuid = UuidUtil.parseUuidOrThrow(userId);
+
+        Iterable<CampaignOwnership> campaigns = campaignOwnershipRepository.findByUserId(uuid);
+
+        return StreamSupport.stream(campaigns.spliterator(),false)
+                .map(CampaignOwnership::getCampaign)
+                .map(CampaignMapper::toDTO).toList();
+    }
+
 
     public CampaignResponseDTO findById(UUID id) {
         Campaign campaign = campaignRepository.findById(id)
@@ -84,6 +97,16 @@ public class CampaignService {
 
         return CampaignMapper.toDTO(savedCampaign);
     }
+
+    @Transactional
+    public CampaignResponseDTO saveWithUserId(CampaignRequestDTO campaignRequestDTO, UUID userId) {
+        CampaignResponseDTO campaign = save(campaignRequestDTO);
+        assignCampaignToUser(UuidUtil.parseUuidOrThrow(campaign.getId()), userId);
+
+        return campaign;
+    }
+
+
 
     @Transactional
     public CampaignResponseDTO update(CampaignRequestDTO campaignRequestDTO, UUID id) {
@@ -174,4 +197,24 @@ public class CampaignService {
 
         return CampaignMapper.toDTO(campaignRepository.save(campaign));
     }
+
+
+    public boolean checkCampaignOwnership(UUID userId, UUID id) {
+        return campaignOwnershipRepository.existsByCampaign_IdAndUserId(id, userId);
+    }
+
+    @Transactional
+    protected void assignCampaignToUser(UUID campaignId, UUID userId) {
+        CampaignOwnership ownership = new CampaignOwnership();
+
+        Campaign campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new CampaignOperationException("Campaign with this id does not exist: " + campaignId));
+
+        ownership.setUserId(userId);
+        ownership.setCampaign(campaign);
+
+        campaignOwnershipRepository.save(ownership);
+    }
+
+
 }
