@@ -30,7 +30,7 @@ public class ProductTests {
                 .contentType("application/json")
                 .body(payload)
                 .when()
-                .post("/product/add")
+                .post("/product/new")
                 .then()
                 .assertThat()
                 .statusCode(expectedStatus)

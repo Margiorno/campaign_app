@@ -64,10 +64,6 @@ public class CampaignController {
             @AuthenticationPrincipal Jwt jwt,
             @Validated({Default.class, CreateCampaignValidationGroup.class}) @RequestBody CampaignRequestDTO campaignRequestDTO) {
 
-        if (jwt == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT token missing");
-        }
-
         UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
         CampaignResponseDTO campaign = campaignService.saveWithUserId(campaignRequestDTO, userId);
 

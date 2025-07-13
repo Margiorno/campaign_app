@@ -1,13 +1,18 @@
 package com.pm.campaign_service.controller;
 
+import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.dto.ProductRequestDTO;
 import com.pm.campaign_service.dto.ProductResponseDTO;
+import com.pm.campaign_service.exception.CampaignOperationException;
 import com.pm.campaign_service.service.ProductService;
+import com.pm.campaign_service.util.UuidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,41 +32,74 @@ public class ProductController {
 
     @GetMapping("/get")
     @Operation(summary = "Get all products")
-    public ResponseEntity<List<ProductResponseDTO>> findAll() {
-        List<ProductResponseDTO> products = productService.findAll();
+    public ResponseEntity<List<ProductResponseDTO>> findAll(@AuthenticationPrincipal Jwt jwt) {
 
-        return ResponseEntity.ok(products);
+        String userId = jwt.getClaimAsString("id");
+        String role = jwt.getClaimAsString("role");
+
+        if ("ADMIN".equals(role)) {
+            return ResponseEntity.ok(productService.findAll());
+        } else {
+            return ResponseEntity.ok(productService.findAllByUserId(userId));
+        }
     }
 
-    @PostMapping("/add")
+    @PostMapping("/new")
     @Operation(summary = "Save new product")
-    public ResponseEntity<ProductResponseDTO> save(@Valid @RequestBody ProductRequestDTO productRequestDTO) {
-        ProductResponseDTO product = productService.save(productRequestDTO);
+    public ResponseEntity<ProductResponseDTO> save(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ProductRequestDTO productRequestDTO) {
 
-        return ResponseEntity.ok(product);
+        UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
+        ProductResponseDTO campaign = productService.saveWithUserId(productRequestDTO, userId);
+
+        return ResponseEntity.ok(campaign);
     }
 
     @PatchMapping("/update/{id}")
     @Operation(summary = "Update product with given id")
-    public ResponseEntity<ProductResponseDTO> update(@Valid @RequestBody ProductRequestDTO productRequestDTO, @PathVariable UUID id) {
-        ProductResponseDTO product = productService.update(id, productRequestDTO);
+    public ResponseEntity<ProductResponseDTO> update(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ProductRequestDTO productRequestDTO, @PathVariable UUID id) {
 
-        return ResponseEntity.ok(product);
+        UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
+        String role = jwt.getClaimAsString("role");
+
+        if ("ADMIN".equals(role) || productService.checkProductOwnership(userId, id)) {
+            return ResponseEntity.ok(productService.update(id, productRequestDTO));
+        } else {
+            throw new CampaignOperationException("Campaign is not owned by the user");
+        }
     }
 
     @DeleteMapping("/delete/{id}")
     @Operation(summary = "Delete product with given id")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        productService.delete(id);
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal Jwt jwt,
+                                       @PathVariable UUID id) {
 
-        return ResponseEntity.noContent().build();
+        UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
+        String role = jwt.getClaimAsString("role");
+
+        if ("ADMIN".equals(role) || productService.checkProductOwnership(userId, id)) {
+            productService.delete(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new CampaignOperationException("Campaign is not owned by the user");
+        }
     }
 
     @GetMapping("/get/{id}")
     @Operation(summary = "Get product with given id")
-    public ResponseEntity<ProductResponseDTO> findById(@PathVariable UUID id) {
-        ProductResponseDTO city = productService.findById(id);
+    public ResponseEntity<ProductResponseDTO> findById(@AuthenticationPrincipal Jwt jwt,
+                                                       @PathVariable UUID id) {
 
-        return ResponseEntity.ok(city);
+        UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
+        String role = jwt.getClaimAsString("role");
+
+        if ("ADMIN".equals(role) || productService.checkProductOwnership(userId, id)) {
+            return ResponseEntity.ok(productService.findById(id));
+        } else {
+            throw new CampaignOperationException("Campaign is not owned by the user");
+        }
     }
 }
