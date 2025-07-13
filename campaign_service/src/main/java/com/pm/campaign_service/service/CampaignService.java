@@ -173,6 +173,7 @@ public class CampaignService {
             throw GrpcExceptionUtil.mapToGrpcException(e, "Failed to get stats for campaign: " + id);
         }
 
+        campaignOwnershipRepository.deleteByCampaignId(id);
         campaignRepository.deleteById(id);
     }
 

@@ -9,6 +9,7 @@
         <module name="tests" />
         <module name="proto-catalog" />
         <module name="api_gateway" />
+        <module name="auth_service" />
         <module name="campaign_service" />
         <module name="stats_service" />
       </profile>
@@ -20,6 +21,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api_gateway" options="-parameters" />
+      <module name="auth_service" options="-parameters" />
       <module name="campaign_service" options="-parameters" />
       <module name="compaign_service" options="-parameters" />
       <module name="stats_service" options="-parameters" />

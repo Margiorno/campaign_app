@@ -1,5 +1,6 @@
 package com.pm.tests.campaign_service_tests;
 
+import com.pm.tests.auth_tests.AuthTests;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.Matchers.*;
 
 public class CampaignTests {
+
+    private static final String authURI = "http://localhost:10000/auth";
 
     @BeforeAll
     static void setUp(){
@@ -24,7 +27,8 @@ public class CampaignTests {
             String cityId,
             String radius,
             int expectedStatus,
-            String baseUri
+            String baseUri,
+            String token
     ) {
         RestAssured.baseURI = baseUri;
 
@@ -42,6 +46,7 @@ public class CampaignTests {
             """, name, description, productId, keywords, bidAmount, campaignAmount, cityId, radius);
 
         return RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(payload)
                 .when()
@@ -57,6 +62,9 @@ public class CampaignTests {
     @Test
     public void addCampaign_shouldReturnOkRequest(){
 
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -64,10 +72,12 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
+
+
 
         Response campaignResponse = createCampaign(
                 uniqueCampaignName,
@@ -79,12 +89,16 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
     }
 
     @Test
     public void addTwoCampaignWithSameName_shouldReturnBadRequest(){
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
 
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
@@ -93,7 +107,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
@@ -108,7 +122,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         Response campaignResponse2 = createCampaign(
@@ -121,22 +136,28 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 400,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
     }
 
     @Test
     public void addCampaignWithMissingName_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
 
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "test description", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
+
 
         Response response = createCampaign(
                 "",
@@ -148,7 +169,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 400,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         response.then().log().all();
@@ -156,13 +178,17 @@ public class CampaignTests {
 
     @Test
     public void addCampaignInvalidBidAmount_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
 
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
@@ -177,7 +203,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 400,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         response.then().log().body();
@@ -185,6 +212,10 @@ public class CampaignTests {
 
     @Test
     public void updateCampaign_shouldReturnUpdatedCampaign() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -192,7 +223,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
@@ -207,7 +238,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         String campaignId = createResponse.jsonPath().getString("id");
@@ -228,6 +260,7 @@ public class CampaignTests {
             """, updatedName, productId, cityId);
 
         Response updateResponse = RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(updatePayload)
                 .when()
@@ -246,6 +279,10 @@ public class CampaignTests {
 
     @Test
     public void startAndStopCampaign_shouldReturnOk() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -253,10 +290,11 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
+
 
         Response createResponse = createCampaign(
                 uniqueCampaignName,
@@ -268,12 +306,14 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         String campaignId = createResponse.jsonPath().getString("id");
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .when()
                 .post("/campaign/" + campaignId + "/start")
                 .then()
@@ -281,6 +321,7 @@ public class CampaignTests {
                 .body("active", equalTo("true"));
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .when()
                 .post("/campaign/" + campaignId + "/stop")
                 .then()
@@ -290,6 +331,11 @@ public class CampaignTests {
 
     @Test
     public void addCampaignWithEmptyKeywords_shouldReturnOk() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -297,7 +343,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[]";
@@ -312,7 +358,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         response.then()
@@ -323,6 +370,10 @@ public class CampaignTests {
 
     @Test
     public void addCampaignWithNullKeywords_shouldReturnOk() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -330,7 +381,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String payload = String.format("""
@@ -346,6 +397,7 @@ public class CampaignTests {
             """, uniqueCampaignName, productId, cityId);
 
         Response response = RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(payload)
                 .when()
@@ -364,9 +416,14 @@ public class CampaignTests {
 
     @Test
     public void addCampaignWithInvalidJson_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String invalidJson = "{ \"name\": \"Test\", \"product\": \"123\", ";
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(invalidJson)
                 .when()
@@ -378,6 +435,9 @@ public class CampaignTests {
 
     @Test
     public void updateCampaignWithNonExistingId_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
         String id = "00000000-0000-0000-0000-000000000000";
 
         String updatePayload = """
@@ -394,6 +454,7 @@ public class CampaignTests {
             """;
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(updatePayload)
                 .when()
@@ -404,6 +465,10 @@ public class CampaignTests {
 
     @Test
     public void deleteCampaign_shouldReturnNoContentAndThenNotFoundOnGet() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -411,7 +476,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\"]";
@@ -426,18 +491,21 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         String campaignId = createResponse.jsonPath().getString("id");
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .when()
                 .delete("/campaign/delete/" + campaignId)
                 .then()
                 .statusCode(204);
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .when()
                 .get("/campaign/" + campaignId)
                 .then()
@@ -447,6 +515,10 @@ public class CampaignTests {
 
     @Test
     public void updateCampaignWithInvalidRadius_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String uniqueCityName = "City_" + System.currentTimeMillis();
         String uniqueProductName = "Product_" + System.currentTimeMillis();
         String uniqueCampaignName = "Campaign_" + System.currentTimeMillis();
@@ -454,7 +526,7 @@ public class CampaignTests {
         Response cityResponse = CityTests.createCity(uniqueCityName, 52.2297, 21.0122, 200, RestAssured.baseURI);
         String cityId = cityResponse.jsonPath().getString("id");
 
-        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI);
+        Response productResponse = ProductTests.createProduct(uniqueProductName, "desc", 200, RestAssured.baseURI, token);
         String productId = productResponse.jsonPath().getString("id");
 
         String keywords = "[\"java\", \"test\"]";
@@ -469,7 +541,8 @@ public class CampaignTests {
                 cityId,
                 "10.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         String campaignId = createResponse.jsonPath().getString("id");
@@ -488,6 +561,7 @@ public class CampaignTests {
         """, uniqueCampaignName, productId, cityId);
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(updatePayload)
                 .when()
@@ -499,10 +573,14 @@ public class CampaignTests {
 
     @Test
     public void addCampaignWithInvalidBidAmount_shouldReturnBadRequest() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String cityId = CityTests.createCity("City_" + System.currentTimeMillis(), 50.2, 20.1, 200, RestAssured.baseURI)
                 .jsonPath().getString("id");
 
-        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI)
+        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI, token)
                 .jsonPath().getString("id");
 
         String payload = String.format("""
@@ -519,6 +597,7 @@ public class CampaignTests {
         """, productId, cityId);
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(payload)
                 .when()
@@ -530,10 +609,14 @@ public class CampaignTests {
 
     @Test
     public void updateCampaignNameOnly_shouldReturnOk() {
+
+        String token = AuthTests.getLoginToken("admin@example.com","password",authURI);
+        AuthTests.validation(token,200,authURI);
+
         String cityId = CityTests.createCity("City_" + System.currentTimeMillis(), 50.1, 19.9, 200, RestAssured.baseURI)
                 .jsonPath().getString("id");
 
-        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI)
+        String productId = ProductTests.createProduct("Product_" + System.currentTimeMillis(), "desc", 200, RestAssured.baseURI, token)
                 .jsonPath().getString("id");
 
         String name = "Campaign_" + System.currentTimeMillis();
@@ -548,7 +631,8 @@ public class CampaignTests {
                 cityId,
                 "5.0",
                 200,
-                RestAssured.baseURI
+                RestAssured.baseURI,
+                token
         );
 
         String campaignId = created.jsonPath().getString("id");
@@ -560,6 +644,7 @@ public class CampaignTests {
         """;
 
         RestAssured.given()
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(updatePayload)
                 .when()

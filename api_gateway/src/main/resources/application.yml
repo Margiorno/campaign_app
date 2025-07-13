@@ -1,6 +1,10 @@
 server:
   port: 10000
 
+auth:
+  service:
+    url: http://localhost:9002
+
 spring:
   cloud:
     gateway:
@@ -15,6 +19,7 @@ spring:
                 - Path=/api/campaign/**, /api/city/**, /api/product/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             # Campaign Service Docs
             - id: campaign-service-docs
@@ -31,11 +36,28 @@ spring:
                 - Path=/api/stats/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             # Stats Service Docs
             - id: stats-service-docs
               uri: http://localhost:9001
               predicates:
                 - Path=/docs/stats-service
+              filters:
+                - SetPath=/v3/api-docs
+
+
+            # Auth Service
+            - id: auth-service-route
+              uri: http://localhost:9002
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+
+            - id: auth-service-docs
+              uri: http://localhost:9002
+              predicates:
+                - Path=/docs/auth-service
               filters:
                 - SetPath=/v3/api-docs
