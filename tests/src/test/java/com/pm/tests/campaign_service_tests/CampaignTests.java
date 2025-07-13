@@ -11,7 +11,7 @@ public class CampaignTests {
 
     @BeforeAll
     static void setUp(){
-        RestAssured.baseURI = "http://localhost:9000";
+        RestAssured.baseURI = "http://localhost:10000/api";
     }
 
     public static Response createCampaign(

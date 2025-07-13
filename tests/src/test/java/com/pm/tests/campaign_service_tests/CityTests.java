@@ -9,7 +9,7 @@ public class CityTests {
 
     @BeforeAll
     static void setUp() {
-        RestAssured.baseURI = "http://localhost:9000";
+        RestAssured.baseURI = "http://localhost:10000/api";
     }
 
     public static Response createCity(String name, Double latitude, Double longitude, int expectedStatus, String baseUri) {

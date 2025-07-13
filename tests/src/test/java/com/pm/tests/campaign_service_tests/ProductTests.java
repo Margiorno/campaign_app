@@ -9,7 +9,7 @@ public class ProductTests {
 
     @BeforeAll
     static void setUp() {
-        RestAssured.baseURI = "http://localhost:9000";
+        RestAssured.baseURI = "http://localhost:10000/api";
     }
 
     public static Response createProduct(String name, String description, int expectedStatus, String baseUri) {
