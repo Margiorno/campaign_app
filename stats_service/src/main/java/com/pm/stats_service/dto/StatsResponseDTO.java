@@ -2,8 +2,8 @@ package com.pm.stats_service.dto;
 
 public class StatsResponseDTO {
     private String id;
-    private String clicks;
-    private String spentAmount;
+    private long clicks;
+    private double spentAmount;
 
     public String getId() {
         return id;
@@ -13,20 +13,19 @@ public class StatsResponseDTO {
         this.id = id;
     }
 
-    public String getClicks() {
+    public long getClicks() {
         return clicks;
     }
 
-    public void setClicks(String clicks) {
+    public void setClicks(long clicks) {
         this.clicks = clicks;
     }
 
-    public String getSpentAmount() {
+    public double getSpentAmount() {
         return spentAmount;
     }
 
-    public void setSpentAmount(String spentAmount) {
+    public void setSpentAmount(double spentAmount) {
         this.spentAmount = spentAmount;
     }
-
 }

@@ -37,4 +37,5 @@ service CampaignService {
   rpc CreateCampaign(CampaignRequest) returns (CampaignResponse);
   rpc UpdateCampaign(CampaignRequest) returns (CampaignResponse);
   rpc DeleteCampaign(CampaignRequest) returns (CampaignResponse);
+  rpc StopCampaign(CampaignRequest) returns (CampaignResponse);
 }

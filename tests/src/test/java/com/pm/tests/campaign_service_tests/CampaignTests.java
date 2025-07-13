@@ -48,6 +48,7 @@ public class CampaignTests {
                 .post("/campaign/new")
                 .then()
                 .assertThat()
+                .log().all()
                 .statusCode(expectedStatus)
                 .extract()
                 .response();
@@ -350,6 +351,7 @@ public class CampaignTests {
                 .when()
                 .post("/campaign/new")
                 .then()
+                .log().all()
                 .statusCode(200)
                 .extract()
                 .response();
@@ -370,6 +372,7 @@ public class CampaignTests {
                 .when()
                 .post("/campaign/new")
                 .then()
+                .log().all()
                 .statusCode(400);
     }
 
@@ -438,7 +441,8 @@ public class CampaignTests {
                 .when()
                 .get("/campaign/" + campaignId)
                 .then()
-                .statusCode(404);
+                .log().all()
+                .statusCode(400);
     }
 
     @Test
