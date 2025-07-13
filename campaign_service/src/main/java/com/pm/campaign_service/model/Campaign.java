@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
-
-// TODO maybe separate Campaign template from campaign instance
 @Entity
 public class Campaign {
     @Id

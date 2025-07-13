@@ -1,0 +1,41 @@
+server:
+  port: 10000
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+
+            # Campaign Service
+            - id: campaign-service-route
+              uri: http://localhost:9000
+              predicates:
+                - Path=/api/campaign/**, /api/city/**, /api/product/**
+              filters:
+                - StripPrefix=1
+
+            # Campaign Service Docs
+            - id: campaign-service-docs
+              uri: http://localhost:9000
+              predicates:
+                - Path=/docs/campaign-service
+              filters:
+                - SetPath=/v3/api-docs
+
+            # Stats Service
+            - id: stats-service-route
+              uri: http://localhost:9001
+              predicates:
+                - Path=/api/stats/**
+              filters:
+                - StripPrefix=1
+
+            # Stats Service Docs
+            - id: stats-service-docs
+              uri: http://localhost:9001
+              predicates:
+                - Path=/docs/stats-service
+              filters:
+                - SetPath=/v3/api-docs
