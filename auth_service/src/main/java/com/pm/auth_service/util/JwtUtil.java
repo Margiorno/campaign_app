@@ -23,10 +23,10 @@ public class JwtUtil {
 
     public String generateToken(String id, String role) {
         return Jwts.builder()
-                .subject(id)
-                .claim("role",role)
+                .claim("id", id)
+                .claim("role", role)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000*60*60))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(secretKey)
                 .compact();
     }

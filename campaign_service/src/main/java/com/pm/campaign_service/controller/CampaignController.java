@@ -10,11 +10,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +63,10 @@ public class CampaignController {
     public ResponseEntity<CampaignResponseDTO> save(
             @AuthenticationPrincipal Jwt jwt,
             @Validated({Default.class, CreateCampaignValidationGroup.class}) @RequestBody CampaignRequestDTO campaignRequestDTO) {
+
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT token missing");
+        }
 
         UUID userId = UuidUtil.parseUuidOrThrow(jwt.getClaimAsString("id"));
         CampaignResponseDTO campaign = campaignService.saveWithUserId(campaignRequestDTO, userId);

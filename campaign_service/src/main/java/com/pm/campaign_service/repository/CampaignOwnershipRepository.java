@@ -10,5 +10,6 @@ import java.util.UUID;
 public interface CampaignOwnershipRepository extends JpaRepository<CampaignOwnership, UUID> {
     Iterable<CampaignOwnership> findByUserId(UUID userId);
     boolean existsByCampaign_IdAndUserId(UUID campaign_id, UUID userId);
+    void deleteByCampaignId(UUID campaignId);
 }
 
