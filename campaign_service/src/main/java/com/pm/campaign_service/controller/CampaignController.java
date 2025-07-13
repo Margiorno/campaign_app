@@ -5,6 +5,7 @@ import com.pm.campaign_service.dto.CampaignResponseDTO;
 import com.pm.campaign_service.dto.validator.CreateCampaignValidationGroup;
 import com.pm.campaign_service.service.CampaignService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/campaign")
+@Tag(name = "Campaign", description = "API for managing Campaigns")
 public class CampaignController {
     private final CampaignService campaignService;
 
