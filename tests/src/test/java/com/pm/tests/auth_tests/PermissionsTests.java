@@ -285,4 +285,139 @@ public class PermissionsTests {
                 .statusCode(204);
     }
 
+
+    @Test
+    public void userCannotAccess_UserController_AdminEndpoints() {
+        String userEmail = "regular_user_" + System.currentTimeMillis() + "@test.com";
+        String userToken = AuthTests.getRegisterToken(userEmail, "password123", authURI);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + userToken)
+                .baseUri(authURI)
+                .when()
+                .get("/all")
+                .then()
+                .log().all()
+                .statusCode(400)
+                .body("message", equalTo("User not authorized"));
+
+        String dummyId = "some-random-id";
+        String payload = "{\"email\": \"new@email.com\", \"password\": \"newpassword\", \"role\": \"USER\"}";
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + userToken)
+                .baseUri(authURI)
+                .contentType("application/json")
+                .body(payload)
+                .when()
+                .post("/edit/" + dummyId)
+                .then()
+                .log().all()
+                .statusCode(400)
+                .body("message", equalTo("User not authorized"));
+    }
+
+
+    @Test
+    public void promotedAdminGainsAccessToOtherUsersCampaigns() {
+        String ownerEmail = "campaign_owner_" + System.currentTimeMillis() + "@test.com";
+        String ownerToken = AuthTests.getRegisterToken(ownerEmail, "password123", authURI);
+        String productId = ProductTests.createProduct("Prod_For_Perm_Test_" + System.currentTimeMillis(), "d", 200, RestAssured.baseURI, ownerToken).jsonPath().getString("id");
+        String cityId = CityTests.createCity("City_For_Perm_Test_" + System.currentTimeMillis(), 1.0, 1.0, 200, RestAssured.baseURI).jsonPath().getString("id");
+        String campaignName = "Owned_Campaign_" + System.currentTimeMillis();
+        CampaignTests.createCampaign(campaignName, "d", productId, "[]", "1", "1", cityId, "1", 200, RestAssured.baseURI, ownerToken);
+
+        String futureAdminEmail = "future_admin_" + System.currentTimeMillis() + "@test.com";
+        String futureAdminToken = AuthTests.getRegisterToken(futureAdminEmail, "password123", authURI);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + futureAdminToken)
+                .when()
+                .get("/campaign/all")
+                .then()
+                .statusCode(200)
+                .body("size()", is(0));
+
+        String rootAdminToken = AuthTests.getLoginToken("admin@example.com", "password", authURI);
+
+        Response usersResponse = RestAssured.given()
+                .header("Authorization", "Bearer " + rootAdminToken)
+                .baseUri(authURI)
+                .get("/all")
+                .then().statusCode(200).extract().response();
+        String futureAdminId = usersResponse.jsonPath().getString("find { it.email == '" + futureAdminEmail + "' }.id");
+        Assertions.assertNotNull(futureAdminId, "User to be promoted was not found.");
+
+        String editPayload = String.format("{\"email\": \"%s\", \"password\": \"password123\", \"role\": \"ADMIN\"}", futureAdminEmail);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + rootAdminToken)
+                .baseUri(authURI)
+                .contentType("application/json")
+                .body(editPayload)
+                .when()
+                .post("/edit/" + futureAdminId)
+                .then()
+                .statusCode(200);
+
+        String promotedAdminToken = AuthTests.getLoginToken(futureAdminEmail, "password123", authURI);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + promotedAdminToken)
+                .when()
+                .get("/campaign/all")
+                .then()
+                .statusCode(200)
+                .body("find { it.name == '" + campaignName + "' }", notNullValue());
+    }
+
+    @Test
+    public void adminCanDemoteAnotherAdmin() {
+        String rootAdminToken = AuthTests.getLoginToken("admin@example.com", "password", authURI);
+        String tempAdminEmail = "temp_admin_" + System.currentTimeMillis() + "@test.com";
+        AuthTests.getRegisterToken(tempAdminEmail, "password123", authURI);
+
+        Response usersResponse = RestAssured.given()
+                .header("Authorization", "Bearer " + rootAdminToken)
+                .baseUri(authURI)
+                .get("/all")
+                .then().statusCode(200).extract().response();
+        String tempAdminId = usersResponse.jsonPath().getString("find { it.email == '" + tempAdminEmail + "' }.id");
+
+        String promotePayload = String.format("{\"email\": \"%s\", \"password\": \"password123\", \"role\": \"ADMIN\"}", tempAdminEmail);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + rootAdminToken)
+                .baseUri(authURI)
+                .contentType("application/json")
+                .body(promotePayload)
+                .when()
+                .post("/edit/" + tempAdminId)
+                .then().statusCode(200);
+
+        String tempAdminToken = AuthTests.getLoginToken(tempAdminEmail, "password123", authURI);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + tempAdminToken)
+                .baseUri(authURI)
+                .get("/all")
+                .then().statusCode(200);
+
+        String demotePayload = String.format("{\"email\": \"%s\", \"password\": \"password123\", \"role\": \"USER\"}", tempAdminEmail);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + rootAdminToken)
+                .baseUri(authURI)
+                .contentType("application/json")
+                .body(demotePayload)
+                .when()
+                .post("/edit/" + tempAdminId)
+                .then().statusCode(200);
+
+        String demotedUserToken = AuthTests.getLoginToken(tempAdminEmail, "password123", authURI);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + demotedUserToken)
+                .baseUri(authURI)
+                .get("/all")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("User not authorized"));
+    }
+
 }

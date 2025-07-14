@@ -1,5 +1,7 @@
 package com.pm.auth_service.util;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -31,9 +33,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public void validateToken(String token) {
+    public Jws<Claims> validateToken(String token) {
         try {
-            Jwts.parser().verifyWith((SecretKey) secretKey).build().parseSignedClaims(token);
+            return Jwts.parser().verifyWith((SecretKey) secretKey).build().parseSignedClaims(token);
         } catch (JwtException e) {
             throw new JwtException("Invalid JWT token");
         }
