@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { deleteProduct, updateProduct } from '../api/campaignService';
 import Modal from './Modal';
+import buttonStyles from '../styles/buttonStyles';
+import { ReactComponent as EditIcon } from '../assets/icons/edit.svg';
+import { ReactComponent as TrashIcon } from '../assets/icons/trash.svg';
 
 const ProductList = ({ products, onDataChange }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,8 +18,7 @@ const ProductList = ({ products, onDataChange }) => {
                 await deleteProduct(productId);
                 onDataChange();
             } catch (error) {
-                console.error("Błąd usuwania produktu:", error);
-                alert('Nie udało się usunąć produktu. Sprawdź, czy nie jest używany przez istniejącą kampanię.');
+                alert('Nie udało się usunąć produktu. Sprawdź, czy nie jest używany przez kampanię.');
             } finally {
                 setIsSubmitting(false);
             }
@@ -54,30 +56,40 @@ const ProductList = ({ products, onDataChange }) => {
                     <h3 style={styles.cardTitle}>{product.name}</h3>
                     <p style={styles.cardDescription}>{product.description}</p>
                     <div style={styles.cardActions}>
-                        <button onClick={() => handleEdit(product)} style={styles.button} disabled={isSubmitting}>Edytuj</button>
-                        <button onClick={() => handleDelete(product.id)} style={styles.deleteButton} disabled={isSubmitting}>
-                            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                        <button onClick={() => handleEdit(product)} style={{ ...buttonStyles.base, ...buttonStyles.secondary }}>
+                            <EditIcon width="16" height="16" />
+                            <span>Edytuj</span>
+                        </button>
+                        <button onClick={() => handleDelete(product.id)} style={{ ...buttonStyles.base, ...buttonStyles.danger }} disabled={isSubmitting}>
+                            <TrashIcon width="16" height="16" />
+                            <span>{isSubmitting ? 'Usuwanie...' : 'Usuń'}</span>
                         </button>
                     </div>
                 </div>
             ))}
-            {isModalOpen && (
+            {isModalOpen && editingProduct && (
                 <Modal onClose={() => setIsModalOpen(false)}>
                     <h2>Edytuj Produkt</h2>
                     <form onSubmit={handleUpdate}>
-                        <input
-                            type="text"
-                            value={editingProduct.name}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                            style={styles.input}
-                            placeholder="Nazwa produktu"
-                        />
-                        <textarea
-                            value={editingProduct.description}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                            style={{ ...styles.input, height: '80px', resize: 'vertical' }}
-                            placeholder="Opis produktu"
-                        />
+                        <div className="form-group">
+                            <label htmlFor="editProductName" className="form-label">Nazwa produktu</label>
+                            <input
+                                id="editProductName"
+                                type="text"
+                                value={editingProduct.name}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="editProductDesc" className="form-label">Opis</label>
+                            <textarea
+                                id="editProductDesc"
+                                value={editingProduct.description}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
                         <button type="submit" style={styles.submitButton} disabled={isSubmitting}>
                             {isSubmitting ? 'Zapisywanie...' : 'Zapisz zmiany'}
                         </button>
@@ -90,14 +102,11 @@ const ProductList = ({ products, onDataChange }) => {
 
 const styles = {
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '20px' },
-    card: { border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', background: 'white' },
-    cardTitle: { margin: '0 0 10px 0', fontSize: '1.1rem' },
-    cardDescription: { flexGrow: 1, color: '#666', fontSize: '0.9rem', lineHeight: '1.4' },
-    cardActions: { display: 'flex', gap: '10px', marginTop: '15px', borderTop: '1px solid #f0f0f0', paddingTop: '15px' },
-    button: { padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', background: '#f7f7f7', cursor: 'pointer' },
-    deleteButton: { padding: '8px 12px', borderRadius: '5px', border: 'none', background: '#d9534f', color: 'white', cursor: 'pointer' },
-    input: { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
-    submitButton: { width: '100%', padding: '10px', borderRadius: '5px', border: 'none', background: '#0275d8', color: 'white', cursor: 'pointer', fontSize: '1rem' },
+    card: { border: '1px solid #e0e0e0', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', background: 'white' },
+    cardTitle: { margin: '0 0 10px 0', fontSize: '1.2rem' },
+    cardDescription: { flexGrow: 1, color: '#666', fontSize: '0.95rem', lineHeight: '1.5' },
+    cardActions: { display: 'flex', gap: '10px', marginTop: '20px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' },
+    submitButton: { width: '100%', padding: '12px', borderRadius: '6px', border: 'none', background: '#0275d8', color: 'white', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' },
 };
 
 export default ProductList;

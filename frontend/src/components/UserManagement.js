@@ -1,30 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, editUser } from '../api/authService';
+import { editUser } from '../api/authService';
 import Modal from './Modal';
+import buttonStyles from '../styles/buttonStyles';
+import { ReactComponent as EditIcon } from '../assets/icons/edit.svg';
 
-const UserManagement = ({ onUserUpdate }) => {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+const UserManagement = ({ users: initialUsers, onUserUpdate }) => {
+    const [users, setUsers] = useState(initialUsers);
+
+    useEffect(() => {
+        setUsers(initialUsers);
+    }, [initialUsers]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true);
-                const response = await getAllUsers();
-                setUsers(response.data);
-            } catch (err) {
-                setError('Nie udało się pobrać listy użytkowników.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUsers();
-    }, []);
 
     const handleEditClick = (user) => {
         setEditingUser({ ...user, password: '' });
@@ -43,17 +32,14 @@ const UserManagement = ({ onUserUpdate }) => {
         try {
             await editUser(editingUser.id, editingUser);
             setIsModalOpen(false);
-            onUserUpdate(); // Wywołaj funkcję z Dashboard, aby odświeżyć dane
+            onUserUpdate();
         } catch (err) {
             alert(`Błąd: ${err.response?.data?.message || 'Wystąpił błąd.'}`);
         } finally {
             setIsSubmitting(false);
         }
     };
-
-    if (loading) return <p>Ładowanie użytkowników...</p>;
-    if (error) return <p style={{ color: 'red' }}>{error}</p>;
-
+    
     return (
         <>
             <table style={styles.table}>
@@ -70,8 +56,12 @@ const UserManagement = ({ onUserUpdate }) => {
                             <td style={styles.td}>{user.email}</td>
                             <td style={styles.td}>{user.role}</td>
                             <td style={styles.td}>
-                                <button onClick={() => handleEditClick(user)} style={styles.editButton}>
-                                    Edytuj
+                                <button
+                                    onClick={() => handleEditClick(user)}
+                                    style={{ ...buttonStyles.base, ...buttonStyles.secondary }}
+                                >
+                                    <EditIcon width="16" height="16" />
+                                    <span>Edytuj</span>
                                 </button>
                             </td>
                         </tr>
@@ -86,9 +76,7 @@ const UserManagement = ({ onUserUpdate }) => {
                         <div style={styles.formGroup}>
                             <label>Email</label>
                             <input
-                                type="email"
-                                value={editingUser.email}
-                                disabled
+                                type="email" value={editingUser.email} disabled
                                 style={{ ...styles.input, background: '#f2f2f2' }}
                             />
                         </div>
@@ -124,7 +112,6 @@ const styles = {
     table: { width: '100%', borderCollapse: 'collapse', marginTop: '15px' },
     th: { borderBottom: '2px solid #ddd', padding: '12px', backgroundColor: '#f9f9f9', textAlign: 'left', color: '#333' },
     td: { borderBottom: '1px solid #ddd', padding: '12px' },
-    editButton: { padding: '6px 12px', borderRadius: '5px', border: '1px solid #0275d8', background: 'transparent', color: '#0275d8', cursor: 'pointer' },
     formGroup: { marginBottom: '15px' },
     input: { width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
     submitButton: { width: '100%', padding: '12px', borderRadius: '5px', border: 'none', background: '#5cb85c', color: 'white', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' },

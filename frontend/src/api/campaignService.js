@@ -8,6 +8,7 @@ export const deleteProduct = (id) => apiClient.delete(`/api/product/delete/${id}
 
 // --- City Endpoints ---
 export const getAllCities = () => apiClient.get('/api/city/get');
+export const addCity = (cityData) => apiClient.post('/api/city/add', cityData);
 
 // --- Campaign Endpoints ---
 export const getAllCampaigns = () => apiClient.get('/api/campaign/all');
