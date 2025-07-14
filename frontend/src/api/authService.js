@@ -17,5 +17,10 @@ export const getAllUsers = () => {
 };
 
 export const editUser = (userId, userData) => {
-    return apiClient.post(`/auth/edit/${userId}`, userData);
+    const payload = {
+        email: userData.email,
+        password: userData.password || "defaultpassword",
+        role: userData.role
+    };
+    return apiClient.post(`/auth/edit/${userId}`, payload);
 }
