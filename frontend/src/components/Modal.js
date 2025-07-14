@@ -13,7 +13,6 @@ const Modal = ({ children, onClose }) => {
     );
 };
 
-// Utwórz div w public/index.html: <div id="modal-root"></div>
 const styles = {
     overlay: {
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -22,11 +21,13 @@ const styles = {
     },
     modal: {
         background: 'white', padding: '25px', borderRadius: '8px',
-        minWidth: '400px', maxWidth: '90%', position: 'relative'
+        minWidth: '400px', maxWidth: '90%', position: 'relative',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
     },
     closeButton: {
         position: 'absolute', top: '10px', right: '10px',
-        background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer'
+        background: 'transparent', border: 'none', fontSize: '1.5rem',
+        cursor: 'pointer', color: '#aaa',
     }
 };
 

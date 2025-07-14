@@ -7,7 +7,7 @@ import CampaignList from '../components/CampaignList';
 import UserManagement from '../components/UserManagement';
 import AddProductForm from '../components/AddProductForm';
 import AddCampaignForm from '../components/AddCampaignForm';
-import styles from './DashboardStyles'; // Import stylów
+import styles from './DashboardStyles';
 
 const DashboardPage = () => {
     const { user, logout } = useAuth();
@@ -19,10 +19,10 @@ const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Funkcja do pobierania wszystkich danych
+    // Funkcja do pobierania wszystkich danych, owinięta w useCallback dla optymalizacji
     const fetchData = useCallback(async () => {
+        // Nie ustawiamy ładowania na true, aby uniknąć migotania przy odświeżaniu
         try {
-            setLoading(true);
             const [productsRes, campaignsRes, citiesRes] = await Promise.all([
                 getAllProducts(),
                 getAllCampaigns(),
@@ -36,7 +36,7 @@ const DashboardPage = () => {
             setError('Nie udało się pobrać danych. Spróbuj odświeżyć stronę.');
             console.error(err);
         } finally {
-            setLoading(false);
+            setLoading(false); // Wyłącz ładowanie po zakończeniu
         }
     }, []);
 
@@ -79,7 +79,7 @@ const DashboardPage = () => {
                 <section style={styles.section}>
                     <h2>Kampanie</h2>
                     <AddCampaignForm products={products} cities={cities} onDataChange={fetchData} />
-                    <CampaignList campaigns={campaigns} onDataChange={fetchData} />
+                    <CampaignList campaigns={campaigns} products={products} cities={cities} onDataChange={fetchData} />
                 </section>
             </main>
         </div>

@@ -19,8 +19,12 @@ export const getAllUsers = () => {
 export const editUser = (userId, userData) => {
     const payload = {
         email: userData.email,
-        password: userData.password || "defaultpassword",
-        role: userData.role
+        role: userData.role,
     };
+
+    if (userData.password && userData.password.length > 0) {
+        payload.password = userData.password;
+    }
+
     return apiClient.post(`/auth/edit/${userId}`, payload);
-}
+};
