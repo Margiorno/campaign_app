@@ -12,6 +12,22 @@ spring:
         webflux:
           routes:
 
+            # Campaign Service - /active
+            - id: campaign-service-public-active
+              uri: http://localhost:9000
+              predicates:
+                - Path=/api/campaign/active
+              filters:
+                - StripPrefix=1
+
+            # Stats Service - click
+            - id: stats-service-click-public
+              uri: http://localhost:9001
+              predicates:
+                - Path=/api/stats/*/click
+              filters:
+                - StripPrefix=1
+
             # Campaign Service
             - id: campaign-service-route
               uri: http://localhost:9000

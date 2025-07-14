@@ -2,13 +2,16 @@ package com.pm.auth_service.controller;
 
 import com.pm.auth_service.dto.UserRequestDTO;
 import com.pm.auth_service.dto.UserResponseDTO;
+import com.pm.auth_service.dto.validator.CreateUserValidationGroup;
 import com.pm.auth_service.exception.UserOperationException;
 import com.pm.auth_service.service.AuthService;
 import com.pm.auth_service.service.UserService;
+import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -42,7 +45,7 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> editUser(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String id,
-            @RequestBody UserRequestDTO userRequestDTO
+            @Validated({Default.class, CreateUserValidationGroup.class}) @RequestBody UserRequestDTO userRequestDTO
     ){
 
         String role = jwt.getClaimAsString("role");

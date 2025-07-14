@@ -1,12 +1,13 @@
 package com.pm.auth_service.dto;
 
+import com.pm.auth_service.dto.validator.CreateUserValidationGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class UserRequestDTO {
-    @NotBlank(message = "email is required")
+    @NotBlank(groups = CreateUserValidationGroup.class, message = "email is required")
     @Email(message = "email should be valid")
     private String email;
 
@@ -14,7 +15,7 @@ public class UserRequestDTO {
     @Size(min = 8, message = "password at least 8 characters long")
     private String password;
 
-    @Pattern(regexp = "ADMIN|USER", message = "role must be 'ADMIN' or 'USER'")
+    @Pattern(groups = CreateUserValidationGroup.class, regexp = "ADMIN|USER", message = "role must be 'ADMIN' or 'USER'")
     private String role;
 
     public @NotBlank(message = "email is required") @Email(message = "email should be valid") String getEmail() {

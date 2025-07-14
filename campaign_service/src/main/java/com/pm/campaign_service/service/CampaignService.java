@@ -59,6 +59,12 @@ public class CampaignService {
                 .map(CampaignMapper::toDTO).toList();
     }
 
+    public List<CampaignResponseDTO> findAllActive() {
+        Iterable<Campaign> campaigns = campaignRepository.findAllByActiveIsTrue();
+
+        return StreamSupport.stream(campaigns.spliterator(), false).map(CampaignMapper::toDTO).toList();
+    }
+
 
     public CampaignResponseDTO findById(UUID id) {
         Campaign campaign = campaignRepository.findById(id)
@@ -216,6 +222,7 @@ public class CampaignService {
 
         campaignOwnershipRepository.save(ownership);
     }
+
 
 
 }

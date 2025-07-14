@@ -59,7 +59,10 @@ public class AuthService {
         User user = userService.findById(id);
 
         user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+
+        if (userRequestDTO.getPassword() != null)
+            user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+
         user.setRole(userRequestDTO.getRole());
 
         User saved = userService.save(user);

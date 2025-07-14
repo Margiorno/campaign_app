@@ -20,3 +20,7 @@ export const stopCampaign = (id) => apiClient.post(`/api/campaign/${id}/stop`);
 
 // --- Stats Endpoint ---
 export const getStatsForCampaign = (id) => apiClient.get(`/api/stats/${id}`);
+
+// --- Simulator ---
+export const getPublicActiveCampaigns = () => apiClient.get('/api/campaign/active');
+export const registerPublicClick = (id) => apiClient.post(`/api/stats/${id}/click`);
