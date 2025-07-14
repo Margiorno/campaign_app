@@ -2,8 +2,11 @@ package com.pm.auth_service.service;
 
 import com.pm.auth_service.dto.LoginRequestDTO;
 import com.pm.auth_service.dto.RegisterRequestDTO;
+import com.pm.auth_service.dto.UserRequestDTO;
+import com.pm.auth_service.dto.UserResponseDTO;
 import com.pm.auth_service.exception.AuthOperationException;
 import com.pm.auth_service.exception.UserOperationException;
+import com.pm.auth_service.mapper.UserMapper;
 import com.pm.auth_service.model.User;
 import com.pm.auth_service.util.JwtUtil;
 import io.jsonwebtoken.JwtException;
@@ -46,11 +49,22 @@ public class AuthService {
         User user = new User();
         user.setEmail(registerRequestDTO.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
-        System.out.println(user.getPassword());
         user.setRole("USER");
 
         userService.save(user);
         return jwtUtil.generateToken(user.getId().toString(), user.getRole());
+    }
+
+    public UserResponseDTO updateUser(String id, UserRequestDTO userRequestDTO) {
+        User user = userService.findById(id);
+
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        user.setRole(userRequestDTO.getRole());
+
+        User saved = userService.save(user);
+
+        return UserMapper.toDTO(saved);
     }
 
 
@@ -62,4 +76,6 @@ public class AuthService {
             return false;
         }
     }
+
+
 }
