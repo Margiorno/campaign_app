@@ -53,7 +53,10 @@ const SimulationPage = () => {
             </header>
             <main style={styles.main}>
                 <h2>Aktywne kampanie ({campaigns.length})</h2>
-                <p> Tutaj są symulowane kliknięcia dla kampanii, jak naciska się click, to symuluje jedno kliknięcie, powstało to ponieważ tak jest najlatwiej to zrobic w testowym srodowisku, codzi o to, żeby </p>
+                <p> Ta strona symuluje działanie kampanii reklamowej w czasie rzeczywistym.
+                    Każde kliknięcie przycisku "Click!" wywołuje logikę biznesową, która zwiększa sumę wydatków kampanii o wartość stawki (bid)
+                    Jeśli łączne wydatki przekroczą zadeklarowany budżet, kampania zostaje automatycznie zatrzymana 
+                    i znika z listy aktywnych – co odzwierciedla pełny cykl życia kampanii przy założonym limicie środków. </p>
                 {campaigns.length === 0 ? (
                     <p style={styles.centered}>Brak aktywnych kampanii do wyświetlenia.</p>
                 ) : (
