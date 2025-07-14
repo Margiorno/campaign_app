@@ -45,6 +45,13 @@ public class CampaignController {
         }
     }
 
+    @GetMapping("/active")
+    @Operation(summary = "Get all campaigns")
+    public ResponseEntity<List<CampaignResponseDTO>> findActive() {
+
+        return ResponseEntity.ok(campaignService.findAllActive());
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get campaign with given id")
     public ResponseEntity<CampaignResponseDTO> findById(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
